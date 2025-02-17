@@ -36,7 +36,12 @@ import General_physician from './General_physician.svg'
 import Gynecologist from './Gynecologist.svg'
 import Neurologist from './Neurologist.svg'
 import Pediatricians from './Pediatricians.svg'
-
+import Internal_med from './internal_med.png'
+import Cardiologist from './cardio_logo.png'
+import Obgynecology from './obgyn_logo.png'
+import Ophthalmology from './op_logo.png'
+import Surgery from './surgery_icon.png'
+import ENT from './ent_logo.png'
 
 export const assets = {
     appointment_img,
@@ -59,30 +64,39 @@ export const assets = {
 }
 
 export const specialityData = [
+
     {
-        speciality: 'General physician',
-        image: General_physician
+        speciality: 'Internal Medicine',
+        image: Internal_med
+    },
+
+    {
+        speciality: 'Cardiologist',
+        image: Cardiologist
     },
     {
-        speciality: 'Gynecologist',
-        image: Gynecologist
+        speciality: 'Obgynecology',
+        image: Obgynecology
     },
+    {
+        speciality: 'Ophthalmology',
+        image: Ophthalmology
+    },
+    {
+        speciality: 'Surgery',
+        image: Surgery
+    },
+
     {
         speciality: 'Dermatologist',
         image: Dermatologist
     },
+
     {
-        speciality: 'Pediatricians',
-        image: Pediatricians
+        speciality: 'ENT',
+        image: ENT
     },
-    {
-        speciality: 'Neurologist',
-        image: Neurologist
-    },
-    {
-        speciality: 'Gastroenterologist',
-        image: Gastroenterologist
-    },
+
 ]
 
 export const doctors = [
