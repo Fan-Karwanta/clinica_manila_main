@@ -6,8 +6,11 @@ import { AdminContext } from '../context/AdminContext'
 
 const Sidebar = () => {
 
-  const { dToken } = useContext(DoctorContext)
+  const { dToken, appointments } = useContext(DoctorContext)
   const { aToken } = useContext(AdminContext)
+
+  // Count unseen appointments (not cancelled and not completed)
+  const unseenAppointments = appointments?.filter(app => !app.cancelled && !app.isCompleted)?.length || 0
 
   return (
     <div className='min-h-screen bg-white border-r'>
@@ -41,8 +44,19 @@ const Sidebar = () => {
           <p className='hidden md:block'>Dashboard</p>
         </NavLink>
         <NavLink to={'/doctor-appointments'} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 md:px-9 md:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-primary' : ''}`}>
-          <img className='min-w-5' src={assets.appointment_icon} alt='' />
+          <div className="relative">
+            <img className='min-w-5' src={assets.appointment_icon} alt='' />
+            {unseenAppointments > 0 && (
+              <div className="absolute -top-2 -right-2 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                {unseenAppointments}
+              </div>
+            )}
+          </div>
           <p className='hidden md:block'>Appointments</p>
+        </NavLink>
+        <NavLink to={'/doctor-analytics'} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 md:px-9 md:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-primary' : ''}`}>
+          <img className='min-w-5' src={assets.list_icon} alt='' />
+          <p className='hidden md:block'>Analytics</p>
         </NavLink>
         <NavLink to={'/doctor-profile'} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 md:px-9 md:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-primary' : ''}`}>
           <img className='min-w-5' src={assets.people_icon} alt='' />

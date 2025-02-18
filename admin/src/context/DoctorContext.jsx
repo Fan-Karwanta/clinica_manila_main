@@ -11,8 +11,22 @@ const DoctorContextProvider = (props) => {
 
     const [dToken, setDToken] = useState(localStorage.getItem('dToken') ? localStorage.getItem('dToken') : '')
     const [appointments, setAppointments] = useState([])
-    const [dashData, setDashData] = useState(false)
-    const [profileData, setProfileData] = useState(false)
+    const [dashData, setDashData] = useState({
+        appointments: 0,
+        patients: 0,
+        latestAppointments: [],
+        doctorName: ''
+    })
+    const [profileData, setProfileData] = useState({
+        name: '',
+        email: '',
+        speciality: '',
+        experience: '',
+        fees: 0,
+        about: '',
+        available: true,
+        address: {}
+    })
 
     // Getting Doctor appointment data from Database using API
     const getAppointments = async () => {
@@ -99,16 +113,44 @@ const DoctorContextProvider = (props) => {
             const { data } = await axios.get(backendUrl + '/api/doctor/dashboard', { headers: { dToken } })
 
             if (data.success) {
-                setDashData(data.dashData)
+                setDashData({
+                    appointments: data.dashData.appointments || 0,
+                    patients: data.dashData.patients || 0,
+                    latestAppointments: data.dashData.latestAppointments || [],
+                    doctorName: data.dashData.doctorName || ''
+                })
             } else {
                 toast.error(data.message)
             }
+        } catch (error) {
+            console.log(error)
+            toast.error(error.message)
+            // Set default values on error
+            setDashData({
+                appointments: 0,
+                patients: 0,
+                latestAppointments: [],
+                doctorName: ''
+            })
+        }
 
+    }
+
+    // Mark all appointments as seen
+    const markAppointmentsAsSeen = async () => {
+        try {
+            const updatedAppointments = appointments.map(app => ({
+                ...app,
+                seen: true
+            }))
+            setAppointments(updatedAppointments)
+            
+            // Optionally save to backend
+            await axios.post(backendUrl + '/api/doctor/mark-appointments-seen', {}, { headers: { dToken } })
         } catch (error) {
             console.log(error)
             toast.error(error.message)
         }
-
     }
 
     const value = {
