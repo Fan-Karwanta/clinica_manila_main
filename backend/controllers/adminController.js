@@ -258,10 +258,10 @@ export {
     loginAdmin,
     appointmentsAdmin,
     appointmentCancel,
-    addDoctor,
     allDoctors,
     adminDashboard,
     getPendingRegistrations,
     updateApprovalStatus,
-    approveAppointment
-};
+    approveAppointment,
+    addDoctor
+}

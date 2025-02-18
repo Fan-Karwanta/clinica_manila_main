@@ -101,14 +101,14 @@ const Dashboard = () => {
             </div>
           </div>
           <div className='text-sm text-gray-600'>
-            <span className='text-green-600'>{completedAppointments} completed</span> • <span className='text-red-600'>{cancelledAppointments} cancelled</span>
+            <span className='text-green-600'>{completedAppointments} approved</span> • <span className='text-red-600'>{cancelledAppointments} cancelled</span>
           </div>
         </div>
 
         <div className='bg-white p-4 sm:p-6 rounded-lg border-2 border-gray-100'>
           <div className='flex items-center justify-between mb-4'>
             <div>
-              <p className='text-sm text-gray-500 mb-1'>Completion Rate</p>
+              <p className='text-sm text-gray-500 mb-1'>Approval Rate</p>
               <p className='text-lg sm:text-xl font-semibold text-gray-800'>{completionRate}%</p>
             </div>
             <div className='bg-yellow-50 p-3 rounded-full'>
@@ -201,7 +201,7 @@ const Dashboard = () => {
                   </span>
                 ) : item.isCompleted ? (
                   <span className='px-3 py-1 rounded-full text-xs font-medium bg-green-50 text-green-600'>
-                    Completed
+                    Approved
                   </span>
                 ) : (
                   <button

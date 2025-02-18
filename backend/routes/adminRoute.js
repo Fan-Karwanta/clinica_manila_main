@@ -7,7 +7,8 @@ import {
     adminDashboard,
     getPendingRegistrations,
     updateApprovalStatus,
-    approveAppointment
+    approveAppointment,
+    addDoctor
 } from '../controllers/adminController.js';
 import authAdmin from '../middleware/authAdmin.js';
 import upload from '../middleware/multer.js';
@@ -24,5 +25,7 @@ adminRouter.get("/dashboard", authAdmin, adminDashboard);
 // New routes for handling user registrations
 adminRouter.get('/pending-registrations', authAdmin, getPendingRegistrations);
 adminRouter.put('/update-approval/:userId', authAdmin, updateApprovalStatus);
+
+adminRouter.post("/add-doctor", authAdmin, upload.single('image'), addDoctor);
 
 export default adminRouter;

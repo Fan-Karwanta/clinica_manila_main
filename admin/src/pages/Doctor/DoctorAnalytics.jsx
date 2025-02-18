@@ -36,7 +36,7 @@ const DoctorAnalytics = () => {
     };
 
     const statusDistribution = [
-      { name: 'Completed', value: statusCount.completed },
+      { name: 'Approved', value: statusCount.completed },
       { name: 'Cancelled', value: statusCount.cancelled },
       { name: 'Pending', value: statusCount.pending }
     ];
