@@ -5,6 +5,7 @@ import doctorModel from "../models/doctorModel.js"
 import userModel from "../models/userModel.js"
 import validator from "validator"
 import { v2 as cloudinary } from "cloudinary"
+import { sendRegistrationEmail } from '../utils/emailService.js'
 
 // API for admin login
 const loginAdmin = async (req, res) => {
@@ -199,7 +200,7 @@ const updateApprovalStatus = async (req, res) => {
             userId,
             { approval_status: status },
             { new: true }
-        ).select('-password');
+        );
 
         if (!user) {
             return res.status(404).json({
@@ -208,9 +209,12 @@ const updateApprovalStatus = async (req, res) => {
             });
         }
 
+        // Send email notification
+        const emailSent = await sendRegistrationEmail(user.email, status);
+
         res.status(200).json({
             success: true,
-            message: `User registration ${status}`,
+            message: `User registration ${status} successfully${emailSent ? ' and notification email sent' : ''}`,
             user
         });
     } catch (error) {

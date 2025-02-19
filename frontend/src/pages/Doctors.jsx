@@ -43,16 +43,28 @@ const Doctors = () => {
           <p onClick={() => speciality === 'Surgeon' ? navigate('/doctors') : navigate('/doctors/Surgeon')} className={`w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer ${speciality === 'Surgeon' ? 'bg-[#E2E5FF] text-black ' : ''}`}>Surgeon</p>
           <p onClick={() => speciality === 'ENT' ? navigate('/doctors') : navigate('/doctors/ENT')} className={`w-[94vw] sm:w-auto pl-3 py-1.5 pr-16 border border-gray-300 rounded transition-all cursor-pointer ${speciality === 'ENT' ? 'bg-[#E2E5FF] text-black ' : ''}`}>ENT</p>
         </div>
-        <div className='w-full grid grid-cols-auto gap-4 gap-y-6'>
+        <div className='w-full grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8'>
           {filterDoc.map((item, index) => (
-            <div onClick={() => { navigate(`/appointment/${item._id}`); scrollTo(0, 0) }} className='border border-[#C9D8FF] rounded-xl overflow-hidden cursor-pointer hover:translate-y-[-10px] transition-all duration-500' key={index}>
-              <img className='bg-[#EAEFFF]' src={item.image} alt="" />
-              <div className='p-4'>
-                <div className={`flex items-center gap-2 text-sm text-center ${item.available ? 'text-green-500' : "text-gray-500"}`}>
-                  <p className={`w-2 h-2 rounded-full ${item.available ? 'bg-green-500' : "bg-gray-500"}`}></p><p>{item.available ? 'Available' : "Not Available"}</p>
+            <div 
+              onClick={() => { navigate(`/appointment/${item._id}`); scrollTo(0, 0) }} 
+              className='w-full max-w-[300px] mx-auto border border-[#C9D8FF] rounded-xl overflow-hidden cursor-pointer hover:translate-y-[-10px] transition-all duration-500 shadow-sm' 
+              key={index}
+            >
+              <div className='w-full h-[300px] relative bg-[#EAEFFF]'>
+                <img 
+                  className='absolute inset-0 w-full h-full object-cover object-center' 
+                  src={item.image} 
+                  alt={item.name}
+                  loading="lazy"
+                />
+              </div>
+              <div className='p-5 bg-white'>
+                <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm ${item.available ? 'text-green-500 bg-green-50' : "text-gray-500 bg-gray-50"}`}>
+                  <div className={`w-2 h-2 rounded-full ${item.available ? 'bg-green-500' : "bg-gray-500"}`}></div>
+                  <span>{item.available ? 'Available' : "Not Available"}</span>
                 </div>
-                <p className='text-[#262626] text-lg font-medium'>{item.name}</p>
-                <p className='text-[#5C5C5C] text-sm'>{item.speciality}</p>
+                <h3 className='mt-3 text-[#262626] text-lg font-medium truncate'>{item.name}</h3>
+                <p className='text-[#5C5C5C] text-sm mt-1'>{item.speciality}</p>
               </div>
             </div>
           ))}
