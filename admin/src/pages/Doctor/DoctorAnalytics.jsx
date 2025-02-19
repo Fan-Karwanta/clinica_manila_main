@@ -5,6 +5,8 @@ import {
   PieChart, Pie, Cell, LineChart, Line, AreaChart, Area
 } from 'recharts';
 import { format, subDays, parseISO } from 'date-fns';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
 const DoctorAnalytics = () => {
   const { appointments, dToken, getAppointments } = useContext(DoctorContext);
@@ -96,8 +98,87 @@ const DoctorAnalytics = () => {
   const COLORS = ['#0088FE', '#FF8042', '#FFBB28'];
   const RETURN_COLORS = ['#00C49F', '#0088FE'];
 
+  const exportChartsToPDF = async () => {
+    const chartsContainer = document.getElementById('charts-container');
+    if (!chartsContainer) return;
+
+    // Create PDF in landscape orientation for better chart layout
+    const pdf = new jsPDF('l', 'mm', 'a4');
+    
+    // A4 landscape dimensions (297 x 210 mm)
+    const pageWidth = 297;
+    const pageHeight = 210;
+    const margin = 10;
+
+    // Add title centered at the top
+    pdf.setFontSize(16);
+    pdf.text('Analytics Dashboard Report', pageWidth / 2, margin, { align: 'center' });
+    
+    // Add date under the title
+    pdf.setFontSize(10);
+    pdf.text(`Generated on: ${format(new Date(), 'PPP')}`, pageWidth / 2, margin + 7, { align: 'center' });
+
+    // Calculate dimensions for 2x2 grid layout
+    const chartWidth = (pageWidth - (margin * 3)) / 2; // Width for each chart
+    const chartHeight = (pageHeight - (margin * 4) - 20) / 2; // Height for each chart, leaving space for title
+
+    // Get all chart containers
+    const chartDivs = Array.from(chartsContainer.querySelectorAll('.chart-container'));
+    
+    // Define positions for each chart
+    const positions = [
+      { x: margin, y: margin + 20 }, // Top left
+      { x: margin + chartWidth + margin, y: margin + 20 }, // Top right
+      { x: margin, y: margin + chartHeight + margin + 20 }, // Bottom left
+      { x: margin + chartWidth + margin, y: margin + chartHeight + margin + 20 } // Bottom right
+    ];
+
+    // Capture and add each chart
+    for (let i = 0; i < chartDivs.length; i++) {
+      const canvas = await html2canvas(chartDivs[i], {
+        scale: 2,
+        logging: false,
+        useCORS: true,
+        backgroundColor: '#ffffff'
+      });
+      
+      const imgData = canvas.toDataURL('image/png');
+      pdf.addImage(
+        imgData,
+        'PNG',
+        positions[i].x,
+        positions[i].y,
+        chartWidth,
+        chartHeight
+      );
+
+      // Add chart title
+      const titleElement = chartDivs[i].querySelector('h3');
+      if (titleElement) {
+        pdf.setFontSize(10);
+        pdf.text(
+          titleElement.textContent,
+          positions[i].x + (chartWidth / 2),
+          positions[i].y - 2,
+          { align: 'center' }
+        );
+      }
+    }
+
+    pdf.save('doctor-analytics-report.pdf');
+  };
+
   return (
     <div className="w-full max-w-6xl m-5 space-y-6">
+      <div className="flex justify-between items-center mb-6">
+        <h2 className="text-2xl font-semibold">Analytics Dashboard</h2>
+        <button
+          onClick={exportChartsToPDF}
+          className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg shadow transition-colors"
+        >
+          Export Charts to PDF
+        </button>
+      </div>
       <h2 className="text-2xl font-semibold mb-6">Analytics Dashboard</h2>
       
       {/* KPI Cards */}
@@ -127,9 +208,9 @@ const DoctorAnalytics = () => {
       </div>
 
       {/* Charts Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div id="charts-container" className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Status Distribution */}
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="bg-white p-4 rounded-lg shadow chart-container">
           <h3 className="text-lg font-semibold mb-4">Appointment Status Distribution</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
@@ -154,7 +235,7 @@ const DoctorAnalytics = () => {
         </div>
 
         {/* Patient Return Rate */}
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="bg-white p-4 rounded-lg shadow chart-container">
           <h3 className="text-lg font-semibold mb-4">Patient Return Rate</h3>
           <ResponsiveContainer width="100%" height={300}>
             <PieChart>
@@ -179,7 +260,7 @@ const DoctorAnalytics = () => {
         </div>
 
         {/* Appointment Trends */}
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="bg-white p-4 rounded-lg shadow chart-container">
           <h3 className="text-lg font-semibold mb-4">Appointment Trends</h3>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={analytics.appointmentTrends}>
@@ -193,7 +274,7 @@ const DoctorAnalytics = () => {
         </div>
 
         {/* Time Distribution */}
-        <div className="bg-white p-4 rounded-lg shadow">
+        <div className="bg-white p-4 rounded-lg shadow chart-container">
           <h3 className="text-lg font-semibold mb-4">Appointment Time Distribution</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart data={analytics.timeDistribution}>

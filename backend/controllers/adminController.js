@@ -189,7 +189,7 @@ const updateApprovalStatus = async (req, res) => {
         const { userId } = req.params;
         const { status } = req.body;
 
-        if (!['approved', 'declined'].includes(status)) {
+        if (!['approved', 'declined', 'blocked'].includes(status)) {
             return res.status(400).json({
                 success: false,
                 message: 'Invalid approval status'
@@ -209,12 +209,14 @@ const updateApprovalStatus = async (req, res) => {
             });
         }
 
-        // Send email notification
-        const emailSent = await sendRegistrationEmail(user.email, status);
+        // Send email notification only for approved/declined status
+        if (status !== 'blocked') {
+            await sendRegistrationEmail(user.email, status);
+        }
 
         res.status(200).json({
             success: true,
-            message: `User registration ${status} successfully${emailSent ? ' and notification email sent' : ''}`,
+            message: `User ${status === 'blocked' ? 'blocked' : `registration ${status}`} successfully`,
             user
         });
     } catch (error) {
@@ -258,6 +260,26 @@ const approveAppointment = async (req, res) => {
     }
 };
 
+// API to get all users list
+const getAllUsers = async (req, res) => {
+    try {
+        const users = await userModel.find({})
+            .select('-password')
+            .sort({ createdAt: -1 });
+
+        res.status(200).json({
+            success: true,
+            users
+        });
+    } catch (error) {
+        console.error('Error fetching users:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to fetch users'
+        });
+    }
+};
+
 export { 
     loginAdmin,
     appointmentsAdmin,
@@ -267,5 +289,6 @@ export {
     getPendingRegistrations,
     updateApprovalStatus,
     approveAppointment,
-    addDoctor
+    addDoctor,
+    getAllUsers
 }

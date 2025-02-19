@@ -36,6 +36,10 @@ const Sidebar = () => {
           <img className='w-5 h-5' src={assets.verify_icon} alt='' />
           <p className='hidden md:block'>Pending Registrations</p>
         </NavLink>
+        <NavLink to={'/users-list'} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 md:px-9 md:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-primary' : ''}`}>
+          <img className='w-5 h-5' src={assets.people_icon} alt='' />
+          <p className='hidden md:block'>Users List</p>
+        </NavLink>
         <NavLink to={'/admin-analytics'} className={({ isActive }) => `flex items-center gap-3 py-3.5 px-3 md:px-9 md:min-w-72 cursor-pointer ${isActive ? 'bg-[#F2F3FF] border-r-4 border-primary' : ''}`}>
           <img className='w-5 h-5' src={assets.charts_icon} alt='' />
           <p className='hidden md:block'>Analytics</p>

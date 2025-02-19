@@ -137,6 +137,13 @@ const loginUser = async (req, res) => {
             });
         }
 
+        if (user.approval_status === 'blocked') {
+            return res.status(403).json({
+                success: false,
+                message: "Your account has been blocked. Please contact support for assistance."
+            });
+        }
+
         // Compare password
         const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) {

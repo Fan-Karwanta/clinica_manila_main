@@ -17,6 +17,7 @@ import DoctorProfile from './pages/Doctor/DoctorProfile';
 import DoctorAnalytics from './pages/Doctor/DoctorAnalytics';
 import PendingRegistrations from './pages/Admin/PendingRegistrations';
 import AdminAnalytics from './pages/Admin/AdminAnalytics';
+import UsersList from './pages/Admin/UsersList';
 
 const App = () => {
 
@@ -41,6 +42,7 @@ const App = () => {
           <Route path='/doctor-analytics' element={<DoctorAnalytics />} />
           <Route path='/pending-registrations' element={<PendingRegistrations />} />
           <Route path='/admin-analytics' element={<AdminAnalytics />} />
+          <Route path='/users-list' element={<UsersList />} />
         </Routes>
       </div>
     </div>
