@@ -8,7 +8,7 @@ const authAdmin = async (req, res, next) => {
         if (!authHeader || !authHeader.startsWith('Bearer ')) {
             return res.status(401).json({
                 success: false,
-                message: 'No token provided'
+                message: 'Please Click Refresh'
             });
         }
 
@@ -17,7 +17,7 @@ const authAdmin = async (req, res, next) => {
         if (!token) {
             return res.status(401).json({
                 success: false,
-                message: 'No token provided'
+                message: 'Please Click Refresh'
             });
         }
 

@@ -179,7 +179,7 @@ const DoctorAnalytics = () => {
           Export Charts to PDF
         </button>
       </div>
-      <h2 className="text-2xl font-semibold mb-6">Analytics Dashboard</h2>
+      
       
       {/* KPI Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">

@@ -53,7 +53,7 @@ const Dashboard = () => {
       {/* Welcome Message */}
       <div className='mb-6'>
         <h1 className='text-xl sm:text-2xl font-semibold text-gray-800 mb-2'>
-          Admin Dashboard
+          Dashboard
         </h1>
         <p className='text-gray-600'>Here's an overview of your clinic's performance.</p>
       </div>
