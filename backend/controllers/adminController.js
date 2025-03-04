@@ -6,6 +6,7 @@ import userModel from "../models/userModel.js"
 import validator from "validator"
 import { v2 as cloudinary } from "cloudinary"
 import { sendRegistrationEmail } from '../utils/emailService.js'
+import { cancelPastAppointments } from '../utils/appointmentUtils.js'
 
 // API for admin login
 const loginAdmin = async (req, res) => {
@@ -31,6 +32,8 @@ const loginAdmin = async (req, res) => {
 // API to get all appointments list
 const appointmentsAdmin = async (req, res) => {
     try {
+        // First, auto-cancel any past appointments
+        await cancelPastAppointments();
 
         const appointments = await appointmentModel.find({})
         res.json({ success: true, appointments })
@@ -39,7 +42,6 @@ const appointmentsAdmin = async (req, res) => {
         console.log(error)
         res.json({ success: false, message: error.message })
     }
-
 }
 
 // API for appointment cancellation
@@ -77,11 +79,11 @@ const addDoctor = async (req, res) => {
 
     try {
 
-        const { name, email, password, speciality, degree, experience, about, fees, address } = req.body
+        const { name, email, password, speciality, degree, experience, about, fees, address, doc_lic_ID } = req.body
         const imageFile = req.file
 
         // checking for all data to add doctor
-        if (!name || !email || !password || !speciality || !degree || !experience || !about || !fees || !address) {
+        if (!name || !email || !password || !speciality || !degree || !experience || !about || !fees || !address || !doc_lic_ID) {
             return res.json({ success: false, message: "Missing Details" })
         }
 
@@ -114,7 +116,8 @@ const addDoctor = async (req, res) => {
             about,
             fees,
             address: JSON.parse(address),
-            date: Date.now()
+            date: Date.now(),
+            doc_lic_ID
         }
 
         const newDoctor = new doctorModel(doctorData)

@@ -10,9 +10,10 @@ const AppContextProvider = ({ children }) => {
 
     const [doctors, setDoctors] = useState([]);
     const [userData, setUserData] = useState(false);
-    const [token, setToken] = useState('');
+    const [token, setToken] = useState(localStorage.getItem('token') ? `Bearer ${localStorage.getItem('token')}` : false);
     const [notifications, setNotifications] = useState([]);
     const [unreadCount, setUnreadCount] = useState(0);
+    const [loginState, setLoginState] = useState('Sign Up');
 
     // Initialize token from localStorage
     useEffect(() => {
@@ -132,7 +133,9 @@ const AppContextProvider = ({ children }) => {
         unreadCount,
         addNotification,
         markNotificationAsRead,
-        markAllNotificationsAsRead
+        markAllNotificationsAsRead,
+        loginState,
+        setLoginState
     };
 
     return (

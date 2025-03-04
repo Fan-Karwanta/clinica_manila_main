@@ -19,6 +19,7 @@ const Appointment = () => {
     const [currentMonth, setCurrentMonth] = useState(new Date())
     const [slotTime, setSlotTime] = useState('')
     const [availableDates, setAvailableDates] = useState(new Set())
+    const [termsAccepted, setTermsAccepted] = useState(false)
 
     const navigate = useNavigate()
 
@@ -253,14 +254,29 @@ const Appointment = () => {
                         </div>
                     </div>
                 )}
-
+<br />
                 {selectedDate && slotTime && (
-                    <button 
-                        onClick={bookAppointment} 
-                        className='bg-primary text-white text-sm font-light px-20 py-3 rounded-full my-6'
-                    >
-                        Book an appointment
-                    </button>
+                    <div className="flex flex-col items-center">
+                        <div className="flex items-start mb-4 w-full max-w-xl bg-blue-50 p-4 rounded-lg border border-blue-200 shadow-sm">
+                            <input 
+                                type="checkbox" 
+                                id="terms-checkbox" 
+                                checked={termsAccepted}
+                                onChange={(e) => setTermsAccepted(e.target.checked)}
+                                className="mt-1 mr-3 h-5 w-5 accent-primary cursor-pointer"
+                            />
+                            <label htmlFor="terms-checkbox" className="text-sm text-gray-700 leading-relaxed">
+                                <span className="font-medium text-primary">Important:</span> By checking this box, I confirm that I will arrive <span className="font-medium">15 minutes BEFORE</span> the scheduled appointment time. I understand that once an appointment is 'approved' by the doctor, it cannot be cancelled. I also acknowledge that spam booking will result in my account being <span className="font-medium">PERMANENTLY BANNED</span>.
+                            </label>
+                        </div>
+                        <button 
+                            onClick={bookAppointment} 
+                            className={`${termsAccepted ? 'bg-primary hover:bg-primary-dark' : 'bg-gray-400'} text-white font-medium px-20 py-3 rounded-full my-6 transition-all duration-300 shadow-md`}
+                            disabled={!termsAccepted}
+                        >
+                            {termsAccepted ? 'Book an appointment' : 'Please accept terms to continue'}
+                        </button>
+                    </div>
                 )}
             </div>
 

@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useState, useEffect } from 'react'
 import { assets } from '../../assets/assets'
 import { toast } from 'react-toastify'
 import axios from 'axios'
@@ -11,6 +11,9 @@ const AddDoctor = () => {
     const [name, setName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
+    const [confirmPassword, setConfirmPassword] = useState('')
+    const [passwordsMatch, setPasswordsMatch] = useState(true)
+    const [showPassword, setShowPassword] = useState(false)
     const [experience, setExperience] = useState('1 Year')
     const [fees, setFees] = useState('')
     const [about, setAbout] = useState('')
@@ -18,17 +21,30 @@ const AddDoctor = () => {
     const [degree, setDegree] = useState('')
     const [address1, setAddress1] = useState('')
     const [address2, setAddress2] = useState('')
+    const [docLicID, setDocLicID] = useState('')
 
     const { backendUrl } = useContext(AppContext)
     const { aToken } = useContext(AdminContext)
+
+    // Check if passwords match whenever either password field changes
+    useEffect(() => {
+        if (password === '' && confirmPassword === '') {
+            setPasswordsMatch(true);
+        } else if (password !== '' && confirmPassword !== '') {
+            setPasswordsMatch(password === confirmPassword);
+        }
+    }, [password, confirmPassword]);
 
     const onSubmitHandler = async (event) => {
         event.preventDefault()
 
         try {
-
             if (!docImg) {
                 return toast.error('Image Not Selected')
+            }
+
+            if (!passwordsMatch) {
+                return toast.error('Passwords do not match')
             }
 
             const formData = new FormData();
@@ -43,6 +59,7 @@ const AddDoctor = () => {
             formData.append('speciality', speciality)
             formData.append('degree', degree)
             formData.append('address', JSON.stringify({ line1: address1, line2: address2 }))
+            formData.append('doc_lic_ID', docLicID)
 
             // console log formdata            
             formData.forEach((value, key) => {
@@ -55,12 +72,14 @@ const AddDoctor = () => {
                 setDocImg(false)
                 setName('')
                 setPassword('')
+                setConfirmPassword('')
                 setEmail('')
                 setAddress1('')
                 setAddress2('')
                 setDegree('')
                 setAbout('')
                 setFees('')
+                setDocLicID('')
             } else {
                 toast.error(data.message)
             }
@@ -69,7 +88,10 @@ const AddDoctor = () => {
             toast.error(error.message)
             console.log(error)
         }
+    }
 
+    const togglePasswordVisibility = () => {
+        setShowPassword(!showPassword)
     }
 
     return (
@@ -100,10 +122,47 @@ const AddDoctor = () => {
                             <input onChange={e => setEmail(e.target.value)} value={email} className='border rounded px-3 py-2' type="email" placeholder='Email' required />
                         </div>
 
-
                         <div className='flex-1 flex flex-col gap-1'>
                             <p>Set Password</p>
-                            <input onChange={e => setPassword(e.target.value)} value={password} className='border rounded px-3 py-2' type="password" placeholder='Password' required />
+                            <input 
+                                onChange={e => setPassword(e.target.value)} 
+                                value={password} 
+                                className={`border rounded px-3 py-2 ${!passwordsMatch && password && confirmPassword ? 'border-red-500' : ''}`}
+                                type={showPassword ? "text" : "password"} 
+                                placeholder='Password' 
+                                required 
+                            />
+                        </div>
+
+                        <div className='flex-1 flex flex-col gap-1'>
+                            <p>Confirm Password</p>
+                            <input 
+                                onChange={e => setConfirmPassword(e.target.value)} 
+                                value={confirmPassword} 
+                                className={`border rounded px-3 py-2 ${!passwordsMatch && password && confirmPassword ? 'border-red-500' : ''}`}
+                                type={showPassword ? "text" : "password"} 
+                                placeholder='Confirm Password' 
+                                required 
+                            />
+                            {!passwordsMatch && password && confirmPassword && (
+                                <p className="text-red-500 text-sm mt-1">Passwords do not match</p>
+                            )}
+                        </div>
+
+                        <div className='flex items-center gap-2 mt-1'>
+                            <input 
+                                type="checkbox" 
+                                id="show-password" 
+                                checked={showPassword}
+                                onChange={togglePasswordVisibility}
+                                className="cursor-pointer"
+                            />
+                            <label htmlFor="show-password" className="text-sm cursor-pointer">Show Password</label>
+                        </div>
+
+                        <div className='flex-1 flex flex-col gap-1'>
+                            <p>License ID Number</p>
+                            <input onChange={e => setDocLicID(e.target.value)} value={docLicID} className='border rounded px-3 py-2' type="text" placeholder='License ID Number' required />
                         </div>
 
                         <div className='flex-1 flex flex-col gap-1'>
@@ -169,7 +228,17 @@ const AddDoctor = () => {
                     <textarea onChange={e => setAbout(e.target.value)} value={about} className='w-full px-4 pt-2 border rounded' rows={5} placeholder='write about doctor'></textarea>
                 </div>
 
-                <button type='submit' className='bg-primary px-10 py-3 mt-4 text-white rounded-full'>Add doctor</button>
+                <button 
+                    type='submit' 
+                    className={`px-10 py-3 mt-4 text-white rounded-full ${
+                        !passwordsMatch && password && confirmPassword 
+                            ? 'bg-gray-400 cursor-not-allowed' 
+                            : 'bg-primary hover:bg-primary-dark'
+                    }`}
+                    disabled={!passwordsMatch && password && confirmPassword}
+                >
+                    Add doctor
+                </button>
 
             </div>
 

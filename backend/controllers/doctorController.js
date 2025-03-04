@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import bcrypt from "bcrypt";
 import doctorModel from "../models/doctorModel.js";
 import appointmentModel from "../models/appointmentModel.js";
+import { cancelPastAppointments } from "../utils/appointmentUtils.js";
 
 // API for doctor Login 
 const loginDoctor = async (req, res) => {

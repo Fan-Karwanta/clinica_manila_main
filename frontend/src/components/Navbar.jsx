@@ -12,7 +12,7 @@ const Navbar = () => {
   const [showNotifications, setShowNotifications] = useState(false)
   const [notifications, setNotifications] = useState([])
   const [unreadCount, setUnreadCount] = useState(0)
-  const { token, setToken, userData, backendUrl } = useContext(AppContext)
+  const { token, setToken, userData, backendUrl, setState, setLoginState } = useContext(AppContext)
 
   // Add months array for date formatting
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -206,9 +206,20 @@ const Navbar = () => {
             </div>
           </>
         ) : (
-          <button onClick={() => navigate('/login')} className='bg-primary text-white px-8 py-3 rounded-full font-light hidden md:block'>
-            Login / Signup 
-          </button>
+          <div className="flex items-center gap-3 hidden md:flex">
+            <button onClick={() => {
+              navigate('/login');
+              setLoginState('Sign Up');
+            }} className='bg-primary text-white px-6 py-2.5 rounded-full font-light hover:bg-primary/90 transition-colors'>
+              Sign up
+            </button>
+            <button onClick={() => {
+              navigate('/login');
+              setLoginState('Login');
+            }} className='border-2 border-primary text-primary px-6 py-2.5 rounded-full font-light hover:bg-primary/5 transition-colors'>
+              Login
+            </button>
+          </div>
         )}
         <img onClick={() => setShowMenu(true)} className='w-6 md:hidden' src={assets.menu_icon} alt="" />
 
