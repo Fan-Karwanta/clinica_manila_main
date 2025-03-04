@@ -30,7 +30,7 @@ const TopDoctors = () => {
                                 <div className={`w-2 h-2 rounded-full ${item.available ? 'bg-green-500' : "bg-gray-500"}`}></div>
                                 <span>{item.available ? 'Available' : "Not Available"}</span>
                             </div>
-                            <h3 className='mt-3 text-[#262626] text-lg font-medium truncate'>{item.name}</h3>
+                            <h3 className='mt-3 text-[#262626] text-lg font-medium truncate'>Dr. {item.name} {item.name_extension && <span className="text-gray-500">{item.name_extension}</span>}</h3>
                             <p className='text-[#5C5C5C] text-sm mt-1'>{item.speciality}</p>
                         </div>
                     </div>

@@ -4,10 +4,14 @@ import { toast } from 'react-toastify'
 import axios from 'axios'
 import { AdminContext } from '../../context/AdminContext'
 import { AppContext } from '../../context/AppContext'
+import { useParams, useNavigate } from 'react-router-dom'
 
-const AddDoctor = () => {
+const EditDoctor = () => {
+    const { id } = useParams()
+    const navigate = useNavigate()
 
     const [docImg, setDocImg] = useState(false)
+    const [imageUrl, setImageUrl] = useState('')
     const [name, setName] = useState('')
     const [nameExtension, setNameExtension] = useState('')
     const [email, setEmail] = useState('')
@@ -23,9 +27,47 @@ const AddDoctor = () => {
     const [address1, setAddress1] = useState('')
     const [address2, setAddress2] = useState('')
     const [docLicID, setDocLicID] = useState('')
+    const [loading, setLoading] = useState(true)
 
     const { backendUrl } = useContext(AppContext)
-    const { aToken } = useContext(AdminContext)
+    const { aToken, getDoctorById, updateDoctor } = useContext(AdminContext)
+
+    // Load doctor data
+    useEffect(() => {
+        const fetchDoctor = async () => {
+            if (!aToken || !id) return
+            
+            setLoading(true)
+            try {
+                const doctor = await getDoctorById(id)
+                if (doctor) {
+                    setName(doctor.name || '')
+                    setNameExtension(doctor.name_extension || '')
+                    setEmail(doctor.email || '')
+                    setExperience(doctor.experience || '1 Year')
+                    setFees(doctor.fees || '')
+                    setAbout(doctor.about || '')
+                    setSpeciality(doctor.speciality || 'Dermatologist')
+                    setDegree(doctor.degree || '')
+                    setAddress1(doctor.address?.line1 || '')
+                    setAddress2(doctor.address?.line2 || '')
+                    setDocLicID(doctor.doc_lic_ID || '')
+                    setImageUrl(doctor.image || '')
+                } else {
+                    toast.error('Failed to load doctor data')
+                    navigate('/doctor-list')
+                }
+            } catch (error) {
+                console.error(error)
+                toast.error('An error occurred while loading doctor data')
+                navigate('/doctor-list')
+            } finally {
+                setLoading(false)
+            }
+        }
+        
+        fetchDoctor()
+    }, [aToken, id, getDoctorById, navigate])
 
     // Check if passwords match whenever either password field changes
     useEffect(() => {
@@ -40,21 +82,22 @@ const AddDoctor = () => {
         event.preventDefault()
 
         try {
-            if (!docImg) {
-                return toast.error('Image Not Selected')
-            }
-
             if (!passwordsMatch) {
                 return toast.error('Passwords do not match')
             }
 
             const formData = new FormData();
 
-            formData.append('image', docImg)
+            if (docImg) {
+                formData.append('image', docImg)
+            }
+            
             formData.append('name', name)
             formData.append('name_extension', nameExtension)
             formData.append('email', email)
-            formData.append('password', password)
+            if (password) {
+                formData.append('password', password)
+            }
             formData.append('experience', experience)
             formData.append('fees', Number(fees))
             formData.append('about', about)
@@ -63,30 +106,10 @@ const AddDoctor = () => {
             formData.append('address', JSON.stringify({ line1: address1, line2: address2 }))
             formData.append('doc_lic_ID', docLicID)
 
-            // console log formdata            
-            formData.forEach((value, key) => {
-                console.log(`${key}: ${value}`);
-            });
-
-            const { data } = await axios.post(backendUrl + '/api/admin/add-doctor', formData, { headers: { aToken } })
-            if (data.success) {
-                toast.success(data.message)
-                setDocImg(false)
-                setName('')
-                setNameExtension('')
-                setPassword('')
-                setConfirmPassword('')
-                setEmail('')
-                setAddress1('')
-                setAddress2('')
-                setDegree('')
-                setAbout('')
-                setFees('')
-                setDocLicID('')
-            } else {
-                toast.error(data.message)
+            const success = await updateDoctor(id, formData)
+            if (success) {
+                navigate('/doctor-list')
             }
-
         } catch (error) {
             toast.error(error.message)
             console.log(error)
@@ -97,24 +120,37 @@ const AddDoctor = () => {
         setShowPassword(!showPassword)
     }
 
+    if (loading) {
+        return <div className="flex justify-center items-center h-screen">Loading...</div>
+    }
+
     return (
         <form onSubmit={onSubmitHandler} className='m-5 w-full'>
-
-            <p className='mb-3 text-lg font-medium'>Add Doctor</p>
+            <div className="flex justify-between items-center mb-3">
+                <p className='text-lg font-medium'>Edit Doctor</p>
+                <button 
+                    type="button"
+                    onClick={() => navigate('/doctor-list')}
+                    className="px-4 py-2 bg-gray-200 rounded-md hover:bg-gray-300"
+                >
+                    Back to Doctors List
+                </button>
+            </div>
 
             <div className='bg-white px-8 py-8 border rounded w-full max-w-4xl max-h-[80vh] overflow-y-scroll'>
                 <div className='flex items-center gap-4 mb-8 text-gray-500'>
                     <label htmlFor="doc-img">
-                        <img className='w-16 bg-gray-100 rounded-full cursor-pointer' src={docImg ? URL.createObjectURL(docImg) : assets.upload_area} alt="" />
+                        <img className='w-16 h-16 object-cover bg-gray-100 rounded-full cursor-pointer' 
+                            src={docImg ? URL.createObjectURL(docImg) : (imageUrl || assets.upload_area)} 
+                            alt="" 
+                        />
                     </label>
                     <input onChange={(e) => setDocImg(e.target.files[0])} type="file" name="" id="doc-img" hidden />
                     <p>Upload doctor <br /> picture</p>
                 </div>
 
                 <div className='flex flex-col lg:flex-row items-start gap-10 text-gray-600'>
-
                     <div className='w-full lg:flex-1 flex flex-col gap-4'>
-
                         <div className='flex-1 flex flex-col gap-1'>
                             <p>Doctor Name</p>
                             <input onChange={e => setName(e.target.value)} value={name} className='border rounded px-3 py-2' type="text" placeholder='Name' required />
@@ -131,14 +167,13 @@ const AddDoctor = () => {
                         </div>
 
                         <div className='flex-1 flex flex-col gap-1'>
-                            <p>Set Password</p>
+                            <p>Change Password (leave blank to keep current)</p>
                             <input 
                                 onChange={e => setPassword(e.target.value)} 
                                 value={password} 
                                 className={`border rounded px-3 py-2 ${!passwordsMatch && password && confirmPassword ? 'border-red-500' : ''}`}
                                 type={showPassword ? "text" : "password"} 
-                                placeholder='Password' 
-                                required 
+                                placeholder='New Password' 
                             />
                         </div>
 
@@ -150,7 +185,7 @@ const AddDoctor = () => {
                                 className={`border rounded px-3 py-2 ${!passwordsMatch && password && confirmPassword ? 'border-red-500' : ''}`}
                                 type={showPassword ? "text" : "password"} 
                                 placeholder='Confirm Password' 
-                                required 
+                                disabled={!password}
                             />
                             {!passwordsMatch && password && confirmPassword && (
                                 <p className="text-red-500 text-sm mt-1">Passwords do not match</p>
@@ -187,22 +222,12 @@ const AddDoctor = () => {
                                 <option value="10 Year">10 Years</option>
                             </select>
                         </div>
-
-                        {/*
-
-                        <div className='flex-1 flex flex-col gap-1'>
-                            <p>Fees</p>
-                            <input onChange={e => setFees(e.target.value)} value={fees} className='border rounded px-3 py-2' type="number" placeholder='Doctor fees' required />
-                        </div> */}
-
                     </div>
 
                     <div className='w-full lg:flex-1 flex flex-col gap-4'>
-
                         <div className='flex-1 flex flex-col gap-1'>
                             <p>Speciality</p>
                             <select onChange={e => setSpeciality(e.target.value)} value={speciality} className='border rounded px-2 py-2'>
-                    
                                 <option value="Dermatologist">Dermatologist</option>
                                 <option value="Internal_Medicine">Internal Medicine</option>
                                 <option value="Cardiologist">Cardiologist</option>
@@ -210,11 +235,8 @@ const AddDoctor = () => {
                                 <option value="Ophthalmologist">Ophthalmologist</option>
                                 <option value="Surgeon">Surgeon</option>
                                 <option value="ENT">ENT</option>
-                                
-                                
                             </select>
                         </div>
-
 
                         <div className='flex-1 flex flex-col gap-1'>
                             <p>Degree</p>
@@ -227,8 +249,11 @@ const AddDoctor = () => {
                             <input onChange={e => setAddress2(e.target.value)} value={address2} className='border rounded px-3 py-2' type="text" placeholder='Address 2 (optional)' />
                         </div>
 
+                      {/*}  <div className='flex-1 flex flex-col gap-1'>
+                            <p>Fees</p>
+                            <input onChange={e => setFees(e.target.value)} value={fees} className='border rounded px-3 py-2' type="number" placeholder='Doctor fees' required />
+                        </div> */}
                     </div>
-
                 </div>
 
                 <div>
@@ -239,20 +264,17 @@ const AddDoctor = () => {
                 <button 
                     type='submit' 
                     className={`px-10 py-3 mt-4 text-white rounded-full ${
-                        !passwordsMatch && password && confirmPassword 
+                        (!passwordsMatch && password && confirmPassword) 
                             ? 'bg-gray-400 cursor-not-allowed' 
                             : 'bg-primary hover:bg-primary-dark'
                     }`}
                     disabled={!passwordsMatch && password && confirmPassword}
                 >
-                    Add doctor
+                    Update Doctor
                 </button>
-
             </div>
-
-
         </form>
     )
 }
 
-export default AddDoctor
+export default EditDoctor

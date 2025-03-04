@@ -9,7 +9,11 @@ import {
     updateApprovalStatus,
     approveAppointment,
     addDoctor,
-    getAllUsers
+    updateDoctor,
+    deleteDoctor,
+    getDoctorById,
+    getAllUsers,
+    changeAvailability
 } from '../controllers/adminController.js';
 import authAdmin from '../middleware/authAdmin.js';
 import upload from '../middleware/multer.js';
@@ -28,6 +32,11 @@ adminRouter.get('/users', authAdmin, getAllUsers);
 adminRouter.get('/pending-registrations', authAdmin, getPendingRegistrations);
 adminRouter.put('/update-approval/:userId', authAdmin, updateApprovalStatus);
 
+// Doctor management routes
 adminRouter.post("/add-doctor", authAdmin, upload.single('image'), addDoctor);
+adminRouter.get("/doctor/:id", authAdmin, getDoctorById);
+adminRouter.put("/update-doctor/:id", authAdmin, upload.single('image'), updateDoctor);
+adminRouter.delete("/delete-doctor/:id", authAdmin, deleteDoctor);
+adminRouter.post("/change-availability", authAdmin, changeAvailability);
 
 export default adminRouter;

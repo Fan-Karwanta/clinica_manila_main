@@ -111,10 +111,77 @@ const AdminContextProvider = (props) => {
 
     }
 
+    // Function to get a single doctor by ID
+    const getDoctorById = async (doctorId) => {
+        try {
+            const { data } = await axios.get(`${backendUrl}/api/admin/doctor/${doctorId}`, { 
+                headers: { Authorization: `Bearer ${aToken}` } 
+            })
+            
+            if (data.success) {
+                return data.doctor
+            } else {
+                toast.error(data.message)
+                return null
+            }
+        } catch (error) {
+            toast.error(error.message)
+            console.log(error)
+            return null
+        }
+    }
+
+    // Function to update doctor
+    const updateDoctor = async (doctorId, formData) => {
+        try {
+            const { data } = await axios.put(`${backendUrl}/api/admin/update-doctor/${doctorId}`, 
+                formData, 
+                { headers: { 
+                    Authorization: `Bearer ${aToken}`,
+                    'Content-Type': 'multipart/form-data'
+                }}
+            )
+            
+            if (data.success) {
+                toast.success(data.message)
+                getAllDoctors()
+                return true
+            } else {
+                toast.error(data.message)
+                return false
+            }
+        } catch (error) {
+            toast.error(error.message)
+            console.log(error)
+            return false
+        }
+    }
+
+    // Function to delete doctor
+    const deleteDoctor = async (doctorId) => {
+        try {
+            const { data } = await axios.delete(`${backendUrl}/api/admin/delete-doctor/${doctorId}`, { 
+                headers: { Authorization: `Bearer ${aToken}` } 
+            })
+            
+            if (data.success) {
+                toast.success(data.message)
+                getAllDoctors()
+                return true
+            } else {
+                toast.error(data.message)
+                return false
+            }
+        } catch (error) {
+            toast.error(error.message)
+            console.log(error)
+            return false
+        }
+    }
+
     // Function to change doctor availablity using API
     const changeAvailability = async (docId) => {
         try {
-
             const { data } = await axios.post(backendUrl + '/api/admin/change-availability', { docId }, { headers: { Authorization: `Bearer ${aToken}` } })
             if (data.success) {
                 toast.success(data.message)
@@ -122,13 +189,11 @@ const AdminContextProvider = (props) => {
             } else {
                 toast.error(data.message)
             }
-
         } catch (error) {
             console.log(error)
             toast.error(error.message)
         }
     }
-
 
     // Getting all appointment data from Database using API
     const getAllAppointments = async () => {
@@ -205,6 +270,9 @@ const AdminContextProvider = (props) => {
         updateApprovalStatus,
         handleLogout,
         getAllDoctors,
+        getDoctorById,
+        updateDoctor,
+        deleteDoctor,
         changeAvailability,
         getAllAppointments,
         getDashData,

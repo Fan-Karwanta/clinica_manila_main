@@ -57,7 +57,7 @@ const DoctorProfile = () => {
 
                     {/* ----- Doc Info : name, degree, experience ----- */}
 
-                    <p className='flex items-center gap-2 text-3xl font-medium text-gray-700'>{profileData.name}</p>
+                    <p className='flex items-center gap-2 text-3xl font-medium text-gray-700'>Dr. {profileData.name}</p>
                     <div className='flex items-center gap-2 mt-1 text-gray-600'>
                         <p>{profileData.degree} - {profileData.speciality}</p>
                         <button className='py-0.5 px-2 border text-xs rounded-full'>{profileData.experience}</button>

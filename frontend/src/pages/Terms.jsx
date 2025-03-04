@@ -34,6 +34,7 @@ const Terms = () => {
           <ul className="list-disc ml-6 mb-3">
             <li>Provide accurate, current, and complete information</li>
             <li>Submit a valid government-issued ID for verification</li>
+            <li>Ensure all provided information is consistent with your government-issued valid ID</li>
             <li>Maintain and update your information as needed</li>
             <li>Keep your account credentials secure</li>
             <li>Be at least 18 years old or have guardian consent</li>
@@ -76,6 +77,7 @@ const Terms = () => {
           </p>
           <ul className="list-disc ml-6 mb-3">
             <li>Provide accurate medical and personal information</li>
+            <li>Ensure all personal information provided matches exactly with your government-issued valid ID</li>
             <li>Keep appointments or provide timely notice of cancellation</li>
             <li>Respect healthcare providers and staff</li>
             <li>Pay any applicable fees according to clinic policies</li>

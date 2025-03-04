@@ -79,7 +79,7 @@ const addDoctor = async (req, res) => {
 
     try {
 
-        const { name, email, password, speciality, degree, experience, about, fees, address, doc_lic_ID } = req.body
+        const { name, name_extension, email, password, speciality, degree, experience, about, fees, address, doc_lic_ID } = req.body
         const imageFile = req.file
 
         // checking for all data to add doctor
@@ -107,6 +107,7 @@ const addDoctor = async (req, res) => {
 
         const doctorData = {
             name,
+            name_extension: name_extension || '',
             email,
             image: imageUrl,
             password: hashedPassword,
@@ -283,6 +284,134 @@ const getAllUsers = async (req, res) => {
     }
 };
 
+// API to get doctor by ID
+const getDoctorById = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        const doctor = await doctorModel.findById(id).select('-password');
+        
+        if (!doctor) {
+            return res.json({ success: false, message: 'Doctor not found' });
+        }
+        
+        res.json({ success: true, doctor });
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: error.message });
+    }
+};
+
+// API to update doctor
+const updateDoctor = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { 
+            name, 
+            name_extension, 
+            email, 
+            speciality, 
+            degree, 
+            experience, 
+            about, 
+            fees, 
+            address, 
+            doc_lic_ID,
+            password 
+        } = req.body;
+        
+        // Find the doctor
+        const doctor = await doctorModel.findById(id);
+        
+        if (!doctor) {
+            return res.json({ success: false, message: 'Doctor not found' });
+        }
+        
+        // Update doctor data
+        const updateData = {
+            name: name || doctor.name,
+            name_extension: name_extension !== undefined ? name_extension : doctor.name_extension,
+            email: email || doctor.email,
+            speciality: speciality || doctor.speciality,
+            degree: degree || doctor.degree,
+            experience: experience || doctor.experience,
+            about: about || doctor.about,
+            fees: fees ? Number(fees) : doctor.fees,
+            address: address ? JSON.parse(address) : doctor.address,
+            doc_lic_ID: doc_lic_ID || doctor.doc_lic_ID
+        };
+        
+        // Handle password update if provided
+        if (password && password.length >= 8) {
+            const salt = await bcrypt.genSalt(10);
+            const hashedPassword = await bcrypt.hash(password, salt);
+            updateData.password = hashedPassword;
+        }
+        
+        // Handle image update if provided
+        if (req.file) {
+            const imageUpload = await cloudinary.uploader.upload(req.file.path, { resource_type: "image" });
+            updateData.image = imageUpload.secure_url;
+        }
+        
+        // Update the doctor
+        await doctorModel.findByIdAndUpdate(id, updateData);
+        
+        res.json({ success: true, message: 'Doctor updated successfully' });
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: error.message });
+    }
+};
+
+// API to delete doctor
+const deleteDoctor = async (req, res) => {
+    try {
+        const { id } = req.params;
+        
+        // Check if doctor exists
+        const doctor = await doctorModel.findById(id);
+        
+        if (!doctor) {
+            return res.json({ success: false, message: 'Doctor not found' });
+        }
+        
+        // Delete the doctor
+        await doctorModel.findByIdAndDelete(id);
+        
+        res.json({ success: true, message: 'Doctor deleted successfully' });
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: error.message });
+    }
+};
+
+// API to change doctor availability
+const changeAvailability = async (req, res) => {
+    try {
+        const { docId } = req.body;
+        
+        // Find the doctor
+        const doctor = await doctorModel.findById(docId);
+        
+        if (!doctor) {
+            return res.json({ success: false, message: 'Doctor not found' });
+        }
+        
+        // Toggle availability
+        doctor.available = !doctor.available;
+        await doctor.save();
+        
+        res.json({ 
+            success: true, 
+            message: `Doctor is now ${doctor.available ? 'available' : 'unavailable'}`
+        });
+    } catch (error) {
+        console.log(error);
+        res.json({ success: false, message: error.message });
+    }
+};
+
 export { 
     loginAdmin,
     appointmentsAdmin,
@@ -293,5 +422,9 @@ export {
     updateApprovalStatus,
     approveAppointment,
     addDoctor,
-    getAllUsers
+    updateDoctor,
+    deleteDoctor,
+    getDoctorById,
+    getAllUsers,
+    changeAvailability
 }
