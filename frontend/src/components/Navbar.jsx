@@ -2,8 +2,7 @@ import React, { useState, useContext, useEffect } from 'react'
 import { assets } from '../assets/assets'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { AppContext } from '../context/AppContext'
-import { IoNotificationsOutline } from 'react-icons/io5'
-import { IoClose } from 'react-icons/io5'
+import { IoNotificationsOutline, IoClose, IoHomeOutline, IoPersonOutline, IoInformationCircleOutline, IoMailOutline, IoDocumentTextOutline, IoCalendarOutline, IoLogOutOutline } from 'react-icons/io5'
 import axios from 'axios'
 
 const Navbar = () => {
@@ -112,26 +111,26 @@ const Navbar = () => {
     <div className='flex items-center justify-between text-sm py-4 mb-5 border-b border-b-[#ADADAD]'>
       <img onClick={() => navigate('/')} className='w-44 cursor-pointer' src={assets.logo} alt="" />
       <ul className='md:flex items-start gap-5 font-medium hidden'>
-        <NavLink to='/'>
-          <li className='py-1'>HOME</li>
+        <NavLink to='/' onClick={() => setShowMenu(false)}>
+          <li className='py-1 hover:text-primary transition-colors'>HOME</li>
           <hr className='border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden' />
         </NavLink>
-        <NavLink to='/doctors'>
-          <li className='py-1'>ALL DOCTORS</li>
+        <NavLink to='/doctors' onClick={() => setShowMenu(false)}>
+          <li className='py-1 hover:text-primary transition-colors'>ALL DOCTORS</li>
           <hr className='border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden' />
         </NavLink>
-        <NavLink to='/about'>
-          <li className='py-1'>ABOUT</li>
+        <NavLink to='/about' onClick={() => setShowMenu(false)}>
+          <li className='py-1 hover:text-primary transition-colors'>ABOUT</li>
           <hr className='border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden' />
         </NavLink>
-        <NavLink to='/contact'>
-          <li className='py-1'>CONTACT</li>
+        <NavLink to='/contact' onClick={() => setShowMenu(false)}>
+          <li className='py-1 hover:text-primary transition-colors'>CONTACT</li>
           <hr className='border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden' />
         </NavLink>
-        <NavLink to='/terms'>
-            <li className='py-1'>TERMS & CONDITIONS</li>
-            <hr className='border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden' />
-          </NavLink>
+        <NavLink to='/terms' onClick={() => setShowMenu(false)}>
+          <li className='py-1 hover:text-primary transition-colors'>TERMS & CONDITIONS</li>
+          <hr className='border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden' />
+        </NavLink>
       </ul>
 
       <div className='flex items-center gap-4'>
@@ -194,8 +193,9 @@ const Navbar = () => {
               </div>
             )}
 
-            <div className='flex items-center gap-2 cursor-pointer group relative'>
-              <img className='w-8 rounded-full' src={userData.image} alt="" />
+            {/* User dropdown - hidden on mobile */}
+            <div className='hidden md:flex items-center gap-2 cursor-pointer group relative'>
+              <span className='font-medium'>{userData.firstName} {userData.lastName}</span>
               <img className='w-2.5' src={assets.dropdown_icon} alt="" />
               <div className='absolute top-0 right-0 pt-14 text-base font-medium text-gray-600 z-20 hidden group-hover:block'>
                 <div className='min-w-48 bg-gray-50 rounded flex flex-col gap-4 p-4'>
@@ -226,24 +226,91 @@ const Navbar = () => {
         {/* Mobile Menu */}
         {showMenu && (
           <div className='fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-end'>
-            <div className='w-80 bg-white h-full p-8'>
-              <div className='flex justify-end'>
-                <img onClick={() => setShowMenu(false)} className='w-6' src={assets.close_icon} alt="" />
+            <div className='w-80 bg-white h-full shadow-xl'>
+              <div className='flex justify-between items-center p-6 border-b border-gray-200'>
+                <img className='w-32' src={assets.logo} alt="Clinica Manila" />
+                <IoClose 
+                  onClick={() => setShowMenu(false)} 
+                  className='text-2xl cursor-pointer hover:text-primary transition-colors' 
+                />
               </div>
-              <ul className='flex flex-col gap-6 font-medium mt-10'>
-                <NavLink to='/'>
-                  <li>HOME</li>
-                </NavLink>
-                <NavLink to='/doctors'>
-                  <li>ALL DOCTORS</li>
-                </NavLink>
-                <NavLink to='/about'>
-                  <li>ABOUT</li>
-                </NavLink>
-                <NavLink to='/contact'>
-                  <li>CONTACT</li>
-                </NavLink>
-              </ul>
+              
+              {token && userData ? (
+                <>
+                  {/* User info section for mobile */}
+                  <div className='px-6 py-4 bg-gray-50'>
+                    <div className='font-medium text-lg text-primary flex items-center gap-2'>
+                      <IoPersonOutline className='text-xl' />
+                      {userData.firstName} {userData.lastName}
+                    </div>
+                  </div>
+                  
+                  <ul className='flex flex-col gap-4 font-medium p-6'>
+                    <NavLink to='/' onClick={() => setShowMenu(false)}>
+                      <li className='flex items-center gap-2 hover:text-primary transition-colors'><IoHomeOutline className='text-lg' /> HOME</li>
+                    </NavLink>
+                    <NavLink to='/doctors' onClick={() => setShowMenu(false)}>
+                      <li className='flex items-center gap-2 hover:text-primary transition-colors'><IoPersonOutline className='text-lg' /> ALL DOCTORS</li>
+                    </NavLink>
+                    <NavLink to='/about' onClick={() => setShowMenu(false)}>
+                      <li className='flex items-center gap-2 hover:text-primary transition-colors'><IoInformationCircleOutline className='text-lg' /> ABOUT</li>
+                    </NavLink>
+                    <NavLink to='/contact' onClick={() => setShowMenu(false)}>
+                      <li className='flex items-center gap-2 hover:text-primary transition-colors'><IoMailOutline className='text-lg' /> CONTACT</li>
+                    </NavLink>
+                    <NavLink to='/terms' onClick={() => setShowMenu(false)}>
+                      <li className='flex items-center gap-2 hover:text-primary transition-colors'><IoDocumentTextOutline className='text-lg' /> TERMS & CONDITIONS</li>
+                    </NavLink>
+                    <hr className='border-gray-200 my-4' />
+                    {/* User specific links */}
+                    <NavLink to='/my-appointments' onClick={() => setShowMenu(false)}>
+                      <li className='flex items-center gap-2 hover:text-primary transition-colors'><IoCalendarOutline className='text-lg' /> MY APPOINTMENTS</li>
+                    </NavLink>
+                    <li onClick={() => {
+                      logout();
+                      setShowMenu(false);
+                    }} className='flex items-center gap-2 cursor-pointer text-red-500 hover:text-red-600 transition-colors'><IoLogOutOutline className='text-lg' /> LOGOUT</li>
+                  </ul>
+                </>
+              ) : (
+                <>
+                  <ul className='flex flex-col gap-4 font-medium p-6'>
+                    <NavLink to='/' onClick={() => setShowMenu(false)}>
+                      <li className='flex items-center gap-2 hover:text-primary transition-colors'><IoHomeOutline className='text-lg' /> HOME</li>
+                    </NavLink>
+                    <NavLink to='/doctors' onClick={() => setShowMenu(false)}>
+                      <li className='flex items-center gap-2 hover:text-primary transition-colors'><IoPersonOutline className='text-lg' /> ALL DOCTORS</li>
+                    </NavLink>
+                    <NavLink to='/about' onClick={() => setShowMenu(false)}>
+                      <li className='flex items-center gap-2 hover:text-primary transition-colors'><IoInformationCircleOutline className='text-lg' /> ABOUT</li>
+                    </NavLink>
+                    <NavLink to='/contact' onClick={() => setShowMenu(false)}>
+                      <li className='flex items-center gap-2 hover:text-primary transition-colors'><IoMailOutline className='text-lg' /> CONTACT</li>
+                    </NavLink>
+                    <NavLink to='/terms' onClick={() => setShowMenu(false)}>
+                      <li className='flex items-center gap-2 hover:text-primary transition-colors'><IoDocumentTextOutline className='text-lg' /> TERMS & CONDITIONS</li>
+                    </NavLink>
+                  </ul>
+                  
+                  {/* Login/Signup buttons for mobile */}
+                  <div className='mt-8 flex flex-col gap-4 p-6'>
+                    <button onClick={() => {
+                      navigate('/login');
+                      setLoginState('Sign Up');
+                      setShowMenu(false);
+                    }} className='bg-primary text-white px-6 py-2.5 rounded-full font-light hover:bg-primary/90 transition-colors'>
+                      Sign up
+                    </button>
+                    <button onClick={() => {
+                      navigate('/login');
+                      setLoginState('Login');
+                      setShowMenu(false);
+                    }} className='border-2 border-primary text-primary px-6 py-2.5 rounded-full font-light hover:bg-primary/5 transition-colors'>
+                      Login
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}

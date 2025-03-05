@@ -412,6 +412,87 @@ const changeAvailability = async (req, res) => {
     }
 };
 
+// API to delete user
+const deleteUser = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        
+        // Find and delete the user
+        const deletedUser = await userModel.findByIdAndDelete(userId);
+        
+        if (!deletedUser) {
+            return res.status(404).json({
+                success: false,
+                message: 'User not found'
+            });
+        }
+
+        // You might want to also delete any associated data like appointments, etc.
+        // For example: await appointmentModel.deleteMany({ userId: userId });
+        
+        res.status(200).json({
+            success: true,
+            message: 'User deleted successfully'
+        });
+    } catch (error) {
+        console.error('Error deleting user:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to delete user'
+        });
+    }
+};
+
+// API to get appointment statistics for all users
+const getUsersAppointmentStats = async (req, res) => {
+    try {
+        // Get all appointments
+        const appointments = await appointmentModel.find({});
+        
+        // Create a map to store user stats
+        const userStats = {};
+        
+        // Calculate stats for each appointment
+        appointments.forEach(appointment => {
+            const userId = appointment.userId?.toString();
+            if (!userId) return;
+            
+            // Initialize user stats if not already done
+            if (!userStats[userId]) {
+                userStats[userId] = {
+                    total: 0,
+                    approved: 0,
+                    pending: 0,
+                    cancelled: 0
+                };
+            }
+            
+            // Increment total appointments
+            userStats[userId].total += 1;
+            
+            // Check status and increment corresponding counter
+            if (appointment.cancelled) {
+                userStats[userId].cancelled += 1;
+            } else if (appointment.approved) {
+                userStats[userId].approved += 1;
+            } else {
+                userStats[userId].pending += 1;
+            }
+        });
+        
+        res.status(200).json({
+            success: true,
+            userStats
+        });
+    } catch (error) {
+        console.error('Error getting user appointment stats:', error);
+        res.status(500).json({
+            success: false,
+            message: error.message || 'Failed to get user appointment statistics'
+        });
+    }
+};
+
 export { 
     loginAdmin,
     appointmentsAdmin,
@@ -426,5 +507,7 @@ export {
     deleteDoctor,
     getDoctorById,
     getAllUsers,
-    changeAvailability
+    changeAvailability,
+    deleteUser,
+    getUsersAppointmentStats
 }
