@@ -8,7 +8,7 @@ import Razorpay from "razorpay";
 import crypto from "crypto";
 import Stripe from "stripe";
 import doctorModel from "../models/doctorModel.js";
-import { sendAdminNewRegistrationAlert } from "../utils/emailService.js";
+import { sendAdminNewRegistrationAlert, sendDoctorAppointmentNotification } from "../utils/emailService.js";
 
 // Gateway Initialize
 const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY)
@@ -299,6 +299,15 @@ const bookAppointment = async (req, res) => {
 
         // save new slots data in docData
         await doctorModel.findByIdAndUpdate(docId, { slots_booked })
+
+        // Send email notification to the doctor about the new appointment
+        try {
+            await sendDoctorAppointmentNotification(docData.email, appointmentData);
+            console.log('Doctor notification email sent successfully');
+        } catch (emailError) {
+            // Just log the error and continue, don't fail the appointment booking
+            console.error('Failed to send doctor notification email:', emailError);
+        }
 
         res.json({ success: true, message: 'Appointment Booked' })
 

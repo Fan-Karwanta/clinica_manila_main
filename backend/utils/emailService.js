@@ -77,3 +77,115 @@ export const sendAdminNewRegistrationAlert = async (userData) => {
         return false;
     }
 };
+
+export const sendDoctorAppointmentNotification = async (doctorEmail, appointmentData) => {
+    const { userData, slotDate, slotTime } = appointmentData;
+    const { firstName, lastName, middleName } = userData;
+    
+    // Format the date from day_month_year to a more readable format
+    const [day, month, year] = slotDate.split('_').map(num => parseInt(num));
+    
+    // Convert month number to month name
+    const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+    
+    const formattedDate = `${monthNames[month-1]} ${day}, ${year}`;
+    
+    const mailOptions = {
+        from: '"Clinica Manila Appointments" <' + process.env.APP_EMAIL + '>',
+        to: doctorEmail,
+        subject: 'New Patient Appointment - Clinica Manila',
+        html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #333;">New Patient Appointment</h2>
+                <p style="color: #666; font-size: 16px;">A new patient has booked an appointment with you:</p>
+                
+                <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <p><strong>Patient Name:</strong> ${firstName} ${middleName ? middleName + ' ' : ''}${lastName}</p>
+                    <p><strong>Appointment Date:</strong> ${formattedDate}</p>
+                    <p><strong>Appointment Time:</strong> ${slotTime}</p>
+                </div>
+                
+                <p style="color: #666; font-size: 16px;">You can view all your appointments in your doctor dashboard.</p>
+                
+                <div style="margin-top: 30px; color: #888; font-size: 14px;">
+                    <p>Best regards,</p>
+                    <p>Clinica Manila Appointments</p>
+                </div>
+            </div>
+        `
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        return true;
+    } catch (error) {
+        console.error('Error sending doctor appointment notification:', error);
+        return false;
+    }
+};
+
+export const sendPatientAppointmentStatusNotification = async (patientEmail, appointmentData, status) => {
+    const { docData, slotDate, slotTime } = appointmentData;
+    
+    // Format the date from day_month_year to a more readable format
+    const [day, month, year] = slotDate.split('_').map(num => parseInt(num));
+    
+    // Convert month number to month name
+    const monthNames = [
+        "January", "February", "March", "April", "May", "June",
+        "July", "August", "September", "October", "November", "December"
+    ];
+    
+    const formattedDate = `${monthNames[month-1]} ${day}, ${year}`;
+    
+    // Determine subject and message based on status
+    const isApproved = status === 'completed';
+    
+    const subject = isApproved 
+        ? 'Appointment Approved - Clinica Manila'
+        : 'Appointment Canceled - Clinica Manila';
+    
+    const statusText = isApproved ? 'APPROVED' : 'CANCELED';
+    const statusColor = isApproved ? '#28a745' : '#dc3545'; // Green for approved, red for canceled
+    
+    const message = isApproved
+        ? `Your appointment has been <strong style="color: ${statusColor};">APPROVED</strong> by the doctor. Please arrive at the clinic at least 15 minutes before your scheduled appointment time.`
+        : `We regret to inform you that your appointment has been <strong style="color: ${statusColor};">CANCELED</strong> by the doctor. Please book another appointment at your convenience or contact Clinica Manila support for assistance.`;
+    
+    const mailOptions = {
+        from: '"Clinica Manila Appointments" <' + process.env.APP_EMAIL + '>',
+        to: patientEmail,
+        subject: subject,
+        html: `
+            <div style="font-family: Arial, sans-serif; padding: 20px; max-width: 600px; margin: 0 auto;">
+                <h2 style="color: #333;">Appointment Status Update</h2>
+                <p style="color: #666; font-size: 16px;">${message}</p>
+                
+                <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+                    <p><strong>Doctor:</strong> ${docData.name} ${docData.name_extension || ''}</p>
+                    <p><strong>Speciality:</strong> ${docData.speciality}</p>
+                    <p><strong>Date:</strong> ${formattedDate}</p>
+                    <p><strong>Time:</strong> ${slotTime}</p>
+                    <p><strong>Status:</strong> <span style="color: ${statusColor};">${statusText}</span></p>
+                </div>
+                
+                <div style="margin-top: 30px; color: #888; font-size: 14px;">
+                    <p>If you have any questions, please contact Clinica Manila Support.</p>
+                    <p>Best regards,</p>
+                    <p>Clinica Manila Team</p>
+                </div>
+            </div>
+        `
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        return true;
+    } catch (error) {
+        console.error('Error sending patient appointment status notification:', error);
+        return false;
+    }
+};

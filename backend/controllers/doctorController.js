@@ -3,6 +3,8 @@ import bcrypt from "bcrypt";
 import doctorModel from "../models/doctorModel.js";
 import appointmentModel from "../models/appointmentModel.js";
 import { cancelPastAppointments } from "../utils/appointmentUtils.js";
+import { sendPatientAppointmentStatusNotification } from "../utils/emailService.js";
+import userModel from "../models/userModel.js";
 
 // API for doctor Login 
 const loginDoctor = async (req, res) => {
@@ -56,6 +58,25 @@ const appointmentCancel = async (req, res) => {
         const appointmentData = await appointmentModel.findById(appointmentId)
         if (appointmentData && appointmentData.docId === docId) {
             await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true })
+            
+            // Get patient email from userId
+            const patient = await userModel.findById(appointmentData.userId);
+            
+            // Send email notification to patient about appointment cancellation
+            try {
+                if (patient && patient.email) {
+                    await sendPatientAppointmentStatusNotification(
+                        patient.email,
+                        appointmentData,
+                        'cancelled'
+                    );
+                    console.log('Patient cancellation email sent successfully');
+                }
+            } catch (emailError) {
+                // Log error but don't fail the appointment cancellation
+                console.error('Failed to send patient cancellation email:', emailError);
+            }
+            
             return res.json({ success: true, message: 'Appointment Cancelled' })
         }
 
@@ -77,6 +98,25 @@ const appointmentComplete = async (req, res) => {
         const appointmentData = await appointmentModel.findById(appointmentId)
         if (appointmentData && appointmentData.docId === docId) {
             await appointmentModel.findByIdAndUpdate(appointmentId, { isCompleted: true })
+            
+            // Get patient email from userId
+            const patient = await userModel.findById(appointmentData.userId);
+            
+            // Send email notification to patient about appointment approval
+            try {
+                if (patient && patient.email) {
+                    await sendPatientAppointmentStatusNotification(
+                        patient.email,
+                        appointmentData,
+                        'completed'
+                    );
+                    console.log('Patient approval email sent successfully');
+                }
+            } catch (emailError) {
+                // Log error but don't fail the appointment approval
+                console.error('Failed to send patient approval email:', emailError);
+            }
+            
             return res.json({ success: true, message: 'Appointment Approved' })
         }
 
