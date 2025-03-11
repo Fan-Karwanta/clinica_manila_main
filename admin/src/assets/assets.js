@@ -13,10 +13,14 @@ import earning_icon from './earning_icon.svg'
 import patients_icon from './patients_icon.svg'
 import verify_icon from './verify_icon.svg'
 import charts_icon from './charts_icon.svg'
+import admin_icon   from './admin_icon.png'
+import doctor_icon2 from './doctor_icon2.png'
+import steth from './stethoscope.png'
 
 export const assets = {
     add_icon,
     admin_logo,
+    admin_icon,
     appointment_icon,
     cancel_icon,
     doctor_icon,
@@ -29,5 +33,7 @@ export const assets = {
     appointments_icon,
     earning_icon,
     verify_icon,
-    charts_icon
+    charts_icon,
+    doctor_icon2,
+    steth
 }
