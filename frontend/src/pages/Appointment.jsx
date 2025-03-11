@@ -233,7 +233,7 @@ const Appointment = () => {
                 {selectedDate && (
                     <div className="mt-6">
                         <p className="mb-3">Select Time Slot for {selectedDate.toLocaleDateString()}</p>
-                        <div className='flex items-center gap-3 w-full overflow-x-scroll'>
+                        <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 w-full'>
                             {docSlots[0]?.map((item, index) => (
                                 <p 
                                     onClick={() => item.available && setSlotTime(item.time)} 

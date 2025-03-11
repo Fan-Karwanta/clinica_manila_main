@@ -8,6 +8,7 @@ import Razorpay from "razorpay";
 import crypto from "crypto";
 import Stripe from "stripe";
 import doctorModel from "../models/doctorModel.js";
+import { sendAdminNewRegistrationAlert } from "../utils/emailService.js";
 
 // Gateway Initialize
 const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY)
@@ -85,6 +86,19 @@ const registerUser = async (req, res) => {
 
             const newUser = new userModel(userData);
             await newUser.save();
+            
+            // Send email notification to admin about the new registration
+            try {
+                await sendAdminNewRegistrationAlert({
+                    firstName,
+                    lastName,
+                    middleName: middleName || ''
+                });
+                console.log('Admin notification email sent successfully');
+            } catch (emailError) {
+                // Just log the error and continue, don't fail the registration
+                console.error('Failed to send admin notification email:', emailError);
+            }
             
             res.status(200).json({ 
                 success: true, 
