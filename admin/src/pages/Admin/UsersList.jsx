@@ -180,7 +180,8 @@ const UsersList = () => {
 
     const showStatsModal = (user) => {
         setSelectedUser(user);
-        setSelectedUserStats(appointmentStats[user._id] || { total: 0, approved: 0, pending: 0, cancelled: 0 });
+        const userStats = appointmentStats[user._id] || { total: 0, approved: 0, pending: 0, cancelled: 0 };
+        setSelectedUserStats(userStats);
         setStatsModalVisible(true);
     };
 

@@ -473,7 +473,7 @@ const getUsersAppointmentStats = async (req, res) => {
             // Check status and increment corresponding counter
             if (appointment.cancelled) {
                 userStats[userId].cancelled += 1;
-            } else if (appointment.approved) {
+            } else if (appointment.isCompleted) {
                 userStats[userId].approved += 1;
             } else {
                 userStats[userId].pending += 1;
