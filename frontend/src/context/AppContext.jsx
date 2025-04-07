@@ -135,7 +135,8 @@ const AppContextProvider = ({ children }) => {
         markNotificationAsRead,
         markAllNotificationsAsRead,
         loginState,
-        setLoginState
+        setLoginState,
+        loadUserProfileData
     };
 
     return (

@@ -3,6 +3,7 @@ import { assets } from '../../assets/assets'
 import { useContext } from 'react'
 import { AdminContext } from '../../context/AdminContext'
 import { AppContext } from '../../context/AppContext'
+import CancellationModal from '../../components/CancellationModal'
 
 const AllAppointments = () => {
   console.log('Rendering AllAppointments component')
@@ -18,6 +19,10 @@ const AllAppointments = () => {
   // Debug mode to show extra information
   const [showDebugInfo, setShowDebugInfo] = useState(true)
   
+  // State for cancellation modal
+  const [showCancellationModal, setShowCancellationModal] = useState(false)
+  const [selectedAppointmentId, setSelectedAppointmentId] = useState(null)
+
   // Extract all available specialties when appointments load
   useEffect(() => {
     if (appointments.length > 0) {
@@ -278,11 +283,49 @@ const AllAppointments = () => {
               <img src={item.docData.image} className='w-8 rounded-full bg-gray-200' alt="" /> <p>{item.docData.name}</p>
             </div>
             {/*<p>{currency}{item.amount}</p>*/}
-            {item.cancelled ? <p className='text-red-400 text-xs font-medium'>Cancelled</p> : item.isCompleted ? <p className='text-green-500 text-xs font-medium'>Approved</p> : <img onClick={() => cancelAppointment(item._id)} className='w-10 cursor-pointer' src={assets.cancel_icon} alt="" />}
+            {item.cancelled ? (
+                <p className='text-red-400 text-xs font-medium'>
+                  Cancelled
+                  {item.cancellationReason && (
+                    <span className="block mt-1 text-gray-500">
+                      Reason: {item.cancellationReason}
+                    </span>
+                  )}
+                </p>
+              ) : item.isCompleted ? (
+                <p className='text-green-500 text-xs font-medium'>Approved</p>
+              ) : (
+                <img 
+                  onClick={() => {
+                    setSelectedAppointmentId(item._id);
+                    setShowCancellationModal(true);
+                  }} 
+                  className='w-10 cursor-pointer' 
+                  src={assets.cancel_icon} 
+                  alt="Cancel appointment" 
+                  title="Cancel appointment"
+                />
+              )}
           </div>
         ))}
       </div>
 
+      {/* Cancellation Modal */}
+      <CancellationModal 
+        isOpen={showCancellationModal}
+        onClose={() => {
+          setShowCancellationModal(false);
+          setSelectedAppointmentId(null);
+        }}
+        onConfirm={(reason) => {
+          if (selectedAppointmentId) {
+            cancelAppointment(selectedAppointmentId, reason);
+            setShowCancellationModal(false);
+            setSelectedAppointmentId(null);
+          }
+        }}
+        title="Cancel Appointment"
+      />
     </div>
   )
 }

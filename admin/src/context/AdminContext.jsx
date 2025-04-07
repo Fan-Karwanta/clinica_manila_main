@@ -215,11 +215,11 @@ const AdminContextProvider = (props) => {
     }
 
     // Function to cancel appointment using API
-    const cancelAppointment = async (appointmentId) => {
+    const cancelAppointment = async (appointmentId, cancellationReason) => {
         try {
             const { data } = await axios.put(
                 `${backendUrl}/api/admin/appointment-cancel/${appointmentId}`,
-                {},
+                { cancellationReason },
                 { headers: { Authorization: `Bearer ${aToken}` } }
             );
 

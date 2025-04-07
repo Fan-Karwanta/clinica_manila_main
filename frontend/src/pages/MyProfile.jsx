@@ -19,7 +19,9 @@ const MyProfile = () => {
 
             const formData = new FormData();
 
-            formData.append('name', userData.name)
+            formData.append('userId', userData._id)
+            formData.append('firstName', userData.firstName)
+            formData.append('lastName', userData.lastName)
             formData.append('phone', userData.phone)
             formData.append('address', JSON.stringify(userData.address))
             formData.append('gender', userData.gender)
@@ -27,11 +29,17 @@ const MyProfile = () => {
 
             image && formData.append('image', image)
 
-            const { data } = await axios.post(backendUrl + '/api/user/update-profile', formData, { headers: { token } })
+            const { data } = await axios.put(backendUrl + '/api/user/update-profile', formData, { 
+                headers: { 
+                    token,
+                    'Content-Type': 'multipart/form-data'
+                } 
+            })
 
             if (data.success) {
                 toast.success(data.message)
-                await loadUserProfileData()
+                // Reload user profile data after successful update
+                loadUserProfileData()
                 setIsEdit(false)
                 setImage(false)
             } else {
@@ -40,7 +48,7 @@ const MyProfile = () => {
 
         } catch (error) {
             console.log(error)
-            toast.error(error.message)
+            toast.error(error.response?.data?.message || error.message)
         }
 
     }
@@ -60,8 +68,23 @@ const MyProfile = () => {
             }
 
             {isEdit
-                ? <input className='bg-gray-50 text-3xl font-medium max-w-60' type="text" onChange={(e) => setUserData(prev => ({ ...prev, name: e.target.value }))} value={userData.name} />
-                : <p className='font-medium text-3xl text-[#262626] mt-4'>{userData.name}</p>
+                ? <div className='flex gap-2'>
+                    <input 
+                      className='bg-gray-50 text-3xl font-medium max-w-40' 
+                      type="text" 
+                      onChange={(e) => setUserData(prev => ({ ...prev, firstName: e.target.value }))} 
+                      value={userData.firstName} 
+                      placeholder="First Name"
+                    />
+                    <input 
+                      className='bg-gray-50 text-3xl font-medium max-w-40' 
+                      type="text" 
+                      onChange={(e) => setUserData(prev => ({ ...prev, lastName: e.target.value }))} 
+                      value={userData.lastName} 
+                      placeholder="Last Name"
+                    />
+                  </div>
+                : <p className='font-medium text-3xl text-[#262626] mt-4'>{userData.firstName} {userData.lastName}</p>
             }
 
             <hr className='bg-[#ADADAD] h-[1px] border-none' />

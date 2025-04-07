@@ -8,7 +8,7 @@ import Razorpay from "razorpay";
 import crypto from "crypto";
 import Stripe from "stripe";
 import doctorModel from "../models/doctorModel.js";
-import { sendAdminNewRegistrationAlert, sendDoctorAppointmentNotification } from "../utils/emailService.js";
+import { sendAdminNewRegistrationAlert, sendDoctorAppointmentNotification, sendPatientAppointmentStatusNotification, sendPasswordResetEmail } from "../utils/emailService.js";
 
 // Gateway Initialize
 const stripeInstance = new Stripe(process.env.STRIPE_SECRET_KEY)
@@ -200,14 +200,14 @@ const updateProfile = async (req, res) => {
 
     try {
 
-        const { userId, name, phone, address, dob, gender } = req.body
+        const { userId, firstName, lastName, phone, address, dob, gender } = req.body
         const imageFile = req.file
 
-        if (!name || !phone || !dob || !gender) {
+        if (!firstName || !lastName || !phone || !dob || !gender) {
             return res.json({ success: false, message: "Data Missing" })
         }
 
-        await userModel.findByIdAndUpdate(userId, { name, phone, address: JSON.parse(address), dob, gender })
+        await userModel.findByIdAndUpdate(userId, { firstName, lastName, phone, address: JSON.parse(address), dob, gender })
 
         if (imageFile) {
 
@@ -321,7 +321,7 @@ const bookAppointment = async (req, res) => {
 const cancelAppointment = async (req, res) => {
     try {
 
-        const { userId, appointmentId } = req.body
+        const { userId, appointmentId, cancellationReason } = req.body
         const appointmentData = await appointmentModel.findById(appointmentId)
 
         // verify appointment user 
@@ -329,7 +329,11 @@ const cancelAppointment = async (req, res) => {
             return res.json({ success: false, message: 'Unauthorized action' })
         }
 
-        await appointmentModel.findByIdAndUpdate(appointmentId, { cancelled: true })
+        await appointmentModel.findByIdAndUpdate(appointmentId, { 
+            cancelled: true,
+            cancellationReason: cancellationReason || 'Cancelled by patient',
+            cancelledBy: 'user'
+        })
 
         // releasing doctor slot 
         const { docId, slotDate, slotTime } = appointmentData
@@ -493,6 +497,218 @@ const markAppointmentRead = async (req, res) => {
     }
 }
 
+// API to check email status
+const checkEmailStatus = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email || !validator.isEmail(email)) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "Please enter a valid email" 
+            });
+        }
+
+        // Check if user exists and get status
+        const existingUser = await userModel.findOne({ email });
+        
+        if (!existingUser) {
+            return res.json({ 
+                success: true, 
+                exists: false,
+                message: "Email is available for registration" 
+            });
+        }
+
+        return res.json({ 
+            success: true, 
+            exists: true,
+            status: existingUser.approval_status,
+            message: `Email is already registered with status: ${existingUser.approval_status}` 
+        });
+
+    } catch (error) {
+        console.error('Email check error:', error);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error checking email status. Please try again.' 
+        });
+    }
+};
+
+// API for forgot password
+const forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+
+        if (!email) {
+            return res.status(400).json({
+                success: false,
+                message: "Please provide your email address"
+            });
+        }
+
+        // Find user by email
+        const user = await userModel.findOne({ email });
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "No account found with this email address"
+            });
+        }
+
+        // Generate reset token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetTokenExpiry = Date.now() + 3600000; // 1 hour from now
+
+        // Save token to user document
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordExpires = resetTokenExpiry;
+        await user.save();
+
+        // Send password reset email
+        const baseURL = process.env.NODE_ENV === 'production' 
+            ? process.env.FRONTEND_URL || 'https://clinica-manila.vercel.app' 
+            : 'http://localhost:5173';
+            
+        const resetUrl = `${baseURL}/reset-password/${resetToken}`;
+        
+        // Send email with reset link
+        const emailSent = await sendPasswordResetEmail(user.email, resetUrl);
+        
+        if (emailSent) {
+            res.status(200).json({
+                success: true,
+                message: "Password reset link has been sent to your email"
+            });
+        } else {
+            // If email fails, remove the token from user
+            user.resetPasswordToken = undefined;
+            user.resetPasswordExpires = undefined;
+            await user.save();
+            
+            res.status(500).json({
+                success: false,
+                message: "Failed to send password reset email. Please try again later."
+            });
+        }
+
+    } catch (error) {
+        console.error('Forgot password error:', error);
+        res.status(500).json({
+            success: false,
+            message: "An error occurred. Please try again later."
+        });
+    }
+};
+
+// API to verify reset token
+const verifyResetToken = async (req, res) => {
+    try {
+        const { token } = req.params;
+        
+        // Find user with this token and check if token is still valid
+        const user = await userModel.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+        
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: "Password reset token is invalid or has expired"
+            });
+        }
+        
+        res.status(200).json({
+            success: true,
+            message: "Token is valid",
+            email: user.email
+        });
+        
+    } catch (error) {
+        console.error('Token verification error:', error);
+        res.status(500).json({
+            success: false,
+            message: "An error occurred. Please try again later."
+        });
+    }
+};
+
+// API to reset password
+const resetPassword = async (req, res) => {
+    try {
+        const { token } = req.params;
+        const { oldPassword, newPassword, confirmPassword } = req.body;
+        
+        // Validate passwords
+        if (!oldPassword || !newPassword || !confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "Please provide all required fields"
+            });
+        }
+        
+        if (newPassword !== confirmPassword) {
+            return res.status(400).json({
+                success: false,
+                message: "New password and confirm password do not match"
+            });
+        }
+        
+        if (newPassword.length < 8) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least 8 characters long"
+            });
+        }
+        
+        // Find user with this token and check if token is still valid
+        const user = await userModel.findOne({
+            resetPasswordToken: token,
+            resetPasswordExpires: { $gt: Date.now() }
+        });
+        
+        if (!user) {
+            return res.status(400).json({
+                success: false,
+                message: "Password reset token is invalid or has expired"
+            });
+        }
+        
+        // Verify old password
+        const isOldPasswordValid = await bcrypt.compare(oldPassword, user.password);
+        if (!isOldPasswordValid) {
+            return res.status(400).json({
+                success: false,
+                message: "Old password is incorrect"
+            });
+        }
+        
+        // Hash new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+        
+        // Update user password and clear reset token
+        user.password = hashedPassword;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpires = undefined;
+        await user.save();
+        
+        res.status(200).json({
+            success: true,
+            message: "Password has been reset successfully. You can now login with your new password."
+        });
+        
+    } catch (error) {
+        console.error('Password reset error:', error);
+        res.status(500).json({
+            success: false,
+            message: "An error occurred. Please try again later."
+        });
+    }
+};
+
 export {
     registerUser,
     loginUser,
@@ -505,5 +721,9 @@ export {
     verifyRazorpay,
     paymentStripe,
     verifyStripe,
-    markAppointmentRead
-}
+    markAppointmentRead,
+    checkEmailStatus,
+    forgotPassword,
+    verifyResetToken,
+    resetPassword
+};

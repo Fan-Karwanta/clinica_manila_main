@@ -187,6 +187,24 @@ const UsersList = () => {
 
     const columns = [
         {
+            title: 'Profile',
+            dataIndex: 'image',
+            key: 'image',
+            render: (image) => (
+                image ? (
+                    <Tooltip title="View Profile Image">
+                        <Button 
+                            type="text" 
+                            icon={<img src={image} alt="Profile" style={{ width: '30px', height: '30px', borderRadius: '50%' }} />} 
+                            onClick={() => handlePreviewImage(image)}
+                        />
+                    </Tooltip>
+                ) : (
+                    <Typography.Text type="secondary">No Image</Typography.Text>
+                )
+            ),
+        },
+        {
             title: 'First Name',
             dataIndex: 'firstName',
             key: 'firstName',

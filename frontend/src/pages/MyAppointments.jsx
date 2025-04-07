@@ -201,7 +201,22 @@ const MyAppointments = () => {
                             {item.isCompleted && <button className='sm:min-w-48 py-2 border border-green-500 rounded text-green-500'>Approved</button>}
 
                             {!item.cancelled && !item.isCompleted && <button onClick={() => cancelAppointment(item._id)} className='text-[#696969] sm:min-w-48 py-2 border rounded hover:bg-red-600 hover:text-white transition-all duration-300'>Cancel appointment</button>}
-                            {item.cancelled && !item.isCompleted && <button className='sm:min-w-48 py-2 border border-red-500 rounded text-red-500'>Appointment cancelled</button>}
+                            {item.cancelled && !item.isCompleted && (
+                                <div>
+                                    <button className='sm:min-w-48 py-2 border border-red-500 rounded text-red-500'>Appointment cancelled</button>
+                                    {item.cancellationReason && (
+                                        <div className="mt-2 p-2 bg-red-50 border border-red-100 rounded text-left">
+                                            <p className="text-xs font-medium text-gray-700">Cancellation reason:</p>
+                                            <p className="text-xs text-gray-600">{item.cancellationReason}</p>
+                                            <p className="text-xs italic text-gray-500 mt-1">
+                                                {item.cancelledBy === 'admin' ? 'Cancelled by admin' : 
+                                                 item.cancelledBy === 'doctor' ? `Cancelled by Dr. ${item.docData.name}` : 
+                                                 'Cancelled by you'}
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
                         </div>
                     </div>
                 ))}

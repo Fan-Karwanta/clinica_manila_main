@@ -17,6 +17,8 @@ const userSchema = new mongoose.Schema({
         default: 'pending'
     },
     validId: { type: String, required: true },
+    resetPasswordToken: { type: String },
+    resetPasswordExpires: { type: Date },
     date: { type: Date, default: Date.now }
 })
 
