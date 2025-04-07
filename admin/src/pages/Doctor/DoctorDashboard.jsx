@@ -127,7 +127,7 @@ const DoctorDashboard = () => {
           <div className='bg-white p-5 rounded-xl border border-gray-200 shadow-sm transition-all hover:shadow-md'>
             <div className='flex items-center justify-between mb-4'>
               <div>
-                <p className='text-sm font-medium text-gray-500'>Total Patients</p>
+                <p className='text-sm font-medium text-gray-500'>Total Patients (Approved) </p>
                 <p className='text-2xl font-bold text-gray-800 mt-1'>{dashData.patients}</p>
               </div>
               <div className='bg-green-100 p-3 rounded-full'>
@@ -136,15 +136,12 @@ const DoctorDashboard = () => {
             </div>
             <div className='flex items-center justify-between'>
               <div className='text-sm text-gray-600'>
-                <span className='font-medium'>Lifetime appointments:</span> {dashData.appointments}
-              </div>
-              <div className='text-xs font-medium px-2 py-1 bg-green-100 text-green-800 rounded-full'>
-                {dashData.patients ? '+' + Math.min(100, dashData.patients) + '%' : '0%'}
+                <span className='text-xs font-medium px-2 py-1 bg-red-100 text-red-800 rounded-full'>Cancelled Appointments: {cancelledAppointments || 0} </span>
               </div>
             </div>
           </div>
-
-          {/* Approval Rate Card */}
+          
+          {/* Approval Rate Card 
           <div className='bg-white p-5 rounded-xl border border-gray-200 shadow-sm transition-all hover:shadow-md'>
             <div className='flex items-center justify-between mb-4'>
               <div>
@@ -170,7 +167,7 @@ const DoctorDashboard = () => {
                 <div style={{ width: `${completionRate}%` }} className='shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-purple-500'></div>
               </div>
             </div>
-          </div>
+          </div>  */}
 
           {/* Pending Actions Card */}
           <div className='bg-white p-5 rounded-xl border border-gray-200 shadow-sm transition-all hover:shadow-md'>

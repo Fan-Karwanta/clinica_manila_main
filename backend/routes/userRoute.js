@@ -1,5 +1,5 @@
 import express from "express";
-import { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, cancelAppointment, paymentRazorpay, verifyRazorpay, paymentStripe, verifyStripe, markAppointmentRead, checkEmailStatus, forgotPassword, verifyResetToken, resetPassword } from '../controllers/userController.js';
+import { registerUser, loginUser, getProfile, updateProfile, bookAppointment, listAppointment, cancelAppointment, paymentRazorpay, verifyRazorpay, paymentStripe, verifyStripe, markAppointmentRead, checkEmailStatus, forgotPassword, verifyResetToken, resetPassword, createResetToken } from '../controllers/userController.js';
 import authUser from "../middleware/authUser.js";
 import upload from "../middleware/multer.js";
 
@@ -21,5 +21,6 @@ userRouter.post("/mark-appointment-read", authUser, markAppointmentRead)
 userRouter.post("/forgot-password", forgotPassword)
 userRouter.get("/reset-password/:token", verifyResetToken)
 userRouter.post("/reset-password/:token", resetPassword)
+userRouter.post("/create-reset-token", authUser, createResetToken)
 
 export default userRouter;

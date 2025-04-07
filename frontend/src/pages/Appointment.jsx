@@ -1,10 +1,11 @@
-import React, { useContext, useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import React, { useContext, useEffect, useState, useCallback } from 'react'
+import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import { AppContext } from '../context/AppContext'
 import { assets } from '../assets/assets'
 import RelatedDoctors from '../components/RelatedDoctors'
 import axios from 'axios'
 import { toast } from 'react-toastify'
+import { useNavigationBlocker } from '../context/NavigationContext'
 
 const Appointment = () => {
 
@@ -20,8 +21,38 @@ const Appointment = () => {
     const [slotTime, setSlotTime] = useState('')
     const [availableDates, setAvailableDates] = useState(new Set())
     const [termsAccepted, setTermsAccepted] = useState(false)
+    const [isFormDirty, setIsFormDirty] = useState(false)
+    const [pendingNavigation, setPendingNavigation] = useState(null)
 
     const navigate = useNavigate()
+    const location = useLocation()
+
+    // Register navigation blocker when form is dirty
+    useNavigationBlocker(() => isFormDirty && selectedDate);
+
+    // Navigation warning system
+    const handleNavigation = useCallback((path) => {
+        if (isFormDirty && selectedDate) {
+            // If form is dirty, show warning modal
+            return false
+        }
+        // Otherwise, navigate directly
+        navigate(path)
+        return true
+    }, [isFormDirty, navigate, selectedDate])
+
+    // Confirm navigation and discard changes
+    const confirmNavigation = () => {
+        setIsFormDirty(false)
+        if (pendingNavigation) {
+            navigate(pendingNavigation)
+        }
+    }
+
+    // Cancel navigation and continue with booking
+    const cancelNavigation = () => {
+        setPendingNavigation(null)
+    }
 
     // Function to get calendar days
     const getCalendarDays = (date) => {
@@ -60,6 +91,7 @@ const Appointment = () => {
     const handleDateClick = (date) => {
         if (!date || !isDateSelectable(date)) return
         setSelectedDate(date)
+        setIsFormDirty(true) // Mark form as dirty when date is selected
         
         // Get time slots for the selected date
         const timeSlots = []
@@ -121,6 +153,7 @@ const Appointment = () => {
             const { data } = await axios.post(backendUrl + '/api/user/book-appointment', { docId, slotDate, slotTime }, { headers: { token } })
             if (data.success) {
                 toast.success(data.message)
+                setIsFormDirty(false) // Reset form dirty state after successful booking
                 navigate('/my-appointments')
             } else {
                 toast.error(data.message)
@@ -139,9 +172,29 @@ const Appointment = () => {
         }
     }, [doctors, docId])
 
+    // Effect to intercept navigation attempts
+    useEffect(() => {
+        // Function to handle beforeunload event (browser refresh/close)
+        const handleBeforeUnload = (e) => {
+            if (isFormDirty && selectedDate) {
+                // Standard way to show a browser confirmation dialog
+                e.preventDefault()
+                e.returnValue = '' // Chrome requires returnValue to be set
+                return '' // This message is not displayed in modern browsers
+            }
+        }
+
+        // Add event listener for browser refresh/close
+        window.addEventListener('beforeunload', handleBeforeUnload)
+
+        // Cleanup function
+        return () => {
+            window.removeEventListener('beforeunload', handleBeforeUnload)
+        }
+    }, [isFormDirty, selectedDate])
+
     return docInfo ? (
         <div>
-
             {/* ---------- Doctor Details ----------- */}
             <div className='flex flex-col sm:flex-row gap-4'>
                 <div>
@@ -236,7 +289,12 @@ const Appointment = () => {
                         <div className='grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 w-full'>
                             {docSlots[0]?.map((item, index) => (
                                 <p 
-                                    onClick={() => item.available && setSlotTime(item.time)} 
+                                    onClick={() => {
+                                        if (item.available) {
+                                            setSlotTime(item.time)
+                                            setIsFormDirty(true) // Mark form as dirty when time is selected
+                                        }
+                                    }}
                                     key={index} 
                                     className={`
                                         text-sm font-light flex-shrink-0 px-5 py-2 rounded-full 
@@ -271,17 +329,29 @@ const Appointment = () => {
                         </div>
                         <button 
                             onClick={bookAppointment} 
-                            className={`${termsAccepted ? 'bg-primary hover:bg-primary-dark' : 'bg-gray-400'} text-white font-medium px-20 py-3 rounded-full my-6 transition-all duration-300 shadow-md`}
-                            disabled={!termsAccepted}
+                            disabled={!slotTime || !termsAccepted}
+                            className={`
+                                py-3 px-8 rounded-full 
+                                ${(!slotTime || !termsAccepted) ? 'bg-gray-300 text-gray-500 cursor-not-allowed' : 'bg-primary text-white'}
+                            `}
                         >
-                            {termsAccepted ? 'Book an appointment' : 'Please accept terms to continue'}
+                            Book Appointment
                         </button>
                     </div>
                 )}
             </div>
 
             {/* Listing Releated Doctors */}
-            <RelatedDoctors speciality={docInfo.speciality} docId={docId} />
+            <div className='mt-12'>
+                <RelatedDoctors 
+                    speciality={docInfo.speciality} 
+                    excludeDocId={docId} 
+                    onDoctorClick={(id) => {
+                        // Use our custom navigation handler
+                        handleNavigation(`/appointment/${id}`)
+                    }}
+                />
+            </div>
         </div>
     ) : null
 }

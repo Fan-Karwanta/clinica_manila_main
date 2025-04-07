@@ -709,6 +709,44 @@ const resetPassword = async (req, res) => {
     }
 };
 
+// API to create a reset token for the logged-in user
+const createResetToken = async (req, res) => {
+    try {
+        const { userId } = req.body;
+        
+        // Verify user exists
+        const user = await userModel.findById(userId);
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+        
+        // Generate reset token
+        const resetToken = crypto.randomBytes(32).toString('hex');
+        const resetTokenExpiry = Date.now() + 3600000; // 1 hour from now
+
+        // Save token to user document
+        user.resetPasswordToken = resetToken;
+        user.resetPasswordExpires = resetTokenExpiry;
+        await user.save();
+        
+        res.status(200).json({
+            success: true,
+            message: "Reset token created successfully",
+            resetToken: resetToken
+        });
+        
+    } catch (error) {
+        console.error('Create reset token error:', error);
+        res.status(500).json({
+            success: false,
+            message: "An error occurred. Please try again later."
+        });
+    }
+};
+
 export {
     registerUser,
     loginUser,
@@ -725,5 +763,6 @@ export {
     checkEmailStatus,
     forgotPassword,
     verifyResetToken,
-    resetPassword
+    resetPassword,
+    createResetToken
 };

@@ -4,9 +4,11 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { AppContext } from '../context/AppContext'
 import { IoNotificationsOutline, IoClose, IoHomeOutline, IoPersonOutline, IoInformationCircleOutline, IoMailOutline, IoDocumentTextOutline, IoCalendarOutline, IoLogOutOutline } from 'react-icons/io5'
 import axios from 'axios'
+import { useNavigation } from '../context/NavigationContext'
 
 const Navbar = () => {
   const navigate = useNavigate()
+  const { navigateSafely } = useNavigation() // Use our custom navigation hook
   const [showMenu, setShowMenu] = useState(false)
   const [showNotifications, setShowNotifications] = useState(false)
   const [notifications, setNotifications] = useState([])
@@ -25,7 +27,7 @@ const Navbar = () => {
   const logout = () => {
     localStorage.removeItem('token')
     setToken(false)
-    navigate('/login')
+    navigateSafely('/login') // Use navigateSafely instead of navigate
   }
 
   // Function to fetch appointments and check for notifications
@@ -89,7 +91,7 @@ const Navbar = () => {
         setNotifications(prev => prev.filter(n => n.id !== notification.id))
         
         // Navigate to appointments page
-        navigate('/my-appointments')
+        navigateSafely('/my-appointments')
         setShowNotifications(false)
       }
     } catch (error) {
@@ -109,25 +111,40 @@ const Navbar = () => {
 
   return (
     <div className='flex items-center justify-between text-sm py-4 mb-5 border-b border-b-[#ADADAD]'>
-      <img onClick={() => navigate('/')} className='w-44 cursor-pointer' src={assets.logo} alt="" />
+      <img onClick={() => navigateSafely('/')} className='w-44 cursor-pointer' src={assets.logo} alt="" />
       <ul className='md:flex items-start gap-5 font-medium hidden'>
-        <NavLink to='/' onClick={() => setShowMenu(false)}>
+        <NavLink to='/' onClick={(e) => {
+          e.preventDefault();
+          navigateSafely('/');
+        }}>
           <li className='py-1 hover:text-primary transition-colors'>HOME</li>
           <hr className='border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden' />
         </NavLink>
-        <NavLink to='/doctors' onClick={() => setShowMenu(false)}>
+        <NavLink to='/doctors' onClick={(e) => {
+          e.preventDefault();
+          navigateSafely('/doctors');
+        }}>
           <li className='py-1 hover:text-primary transition-colors'>ALL DOCTORS</li>
           <hr className='border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden' />
         </NavLink>
-        <NavLink to='/about' onClick={() => setShowMenu(false)}>
+        <NavLink to='/about' onClick={(e) => {
+          e.preventDefault();
+          navigateSafely('/about');
+        }}>
           <li className='py-1 hover:text-primary transition-colors'>ABOUT</li>
           <hr className='border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden' />
         </NavLink>
-        <NavLink to='/contact' onClick={() => setShowMenu(false)}>
+        <NavLink to='/contact' onClick={(e) => {
+          e.preventDefault();
+          navigateSafely('/contact');
+        }}>
           <li className='py-1 hover:text-primary transition-colors'>CONTACT</li>
           <hr className='border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden' />
         </NavLink>
-        <NavLink to='/terms' onClick={() => setShowMenu(false)}>
+        <NavLink to='/terms' onClick={(e) => {
+          e.preventDefault();
+          navigateSafely('/terms');
+        }}>
           <li className='py-1 hover:text-primary transition-colors'>TERMS & CONDITIONS</li>
           <hr className='border-none outline-none h-0.5 bg-primary w-3/5 m-auto hidden' />
         </NavLink>
@@ -199,8 +216,8 @@ const Navbar = () => {
               <img className='w-2.5' src={assets.dropdown_icon} alt="" />
               <div className='absolute top-0 right-0 pt-14 text-base font-medium text-gray-600 z-20 hidden group-hover:block'>
                 <div className='min-w-48 bg-gray-50 rounded flex flex-col gap-4 p-4'>
-                  <p onClick={() => navigate('/my-profile')} className='hover:text-black cursor-pointer'>My Profile</p>
-                  <p onClick={() => navigate('/my-appointments')} className='hover:text-black cursor-pointer'>My Appointments</p>
+                  <p onClick={() => navigateSafely('/my-profile')} className='hover:text-black cursor-pointer'>My Profile</p>
+                  <p onClick={() => navigateSafely('/my-appointments')} className='hover:text-black cursor-pointer'>My Appointments</p>
                   <p onClick={logout} className='hover:text-black cursor-pointer'>Logout</p>
                 </div>
               </div>
@@ -209,13 +226,13 @@ const Navbar = () => {
         ) : (
           <div className="flex items-center gap-3 hidden md:flex">
             <button onClick={() => {
-              navigate('/login');
+              navigateSafely('/login');
               setLoginState('Sign Up');
             }} className='bg-primary text-white px-6 py-2.5 rounded-full font-light hover:bg-primary/90 transition-colors'>
               Sign up
             </button>
             <button onClick={() => {
-              navigate('/login');
+              navigateSafely('/login');
               setLoginState('Login');
             }} className='border-2 border-primary text-primary px-6 py-2.5 rounded-full font-light hover:bg-primary/5 transition-colors'>
               Login
@@ -247,27 +264,55 @@ const Navbar = () => {
                   </div>
                   
                   <ul className='flex flex-col gap-4 font-medium p-6'>
-                    <NavLink to='/' onClick={() => setShowMenu(false)}>
+                    <NavLink to='/' onClick={(e) => {
+                      e.preventDefault();
+                      navigateSafely('/');
+                      setShowMenu(false);
+                    }}>
                       <li className='flex items-center gap-2 hover:text-primary transition-colors'><IoHomeOutline className='text-lg' /> HOME</li>
                     </NavLink>
-                    <NavLink to='/doctors' onClick={() => setShowMenu(false)}>
+                    <NavLink to='/doctors' onClick={(e) => {
+                      e.preventDefault();
+                      navigateSafely('/doctors');
+                      setShowMenu(false);
+                    }}>
                       <li className='flex items-center gap-2 hover:text-primary transition-colors'><IoPersonOutline className='text-lg' /> ALL DOCTORS</li>
                     </NavLink>
-                    <NavLink to='/about' onClick={() => setShowMenu(false)}>
+                    <NavLink to='/about' onClick={(e) => {
+                      e.preventDefault();
+                      navigateSafely('/about');
+                      setShowMenu(false);
+                    }}>
                       <li className='flex items-center gap-2 hover:text-primary transition-colors'><IoInformationCircleOutline className='text-lg' /> ABOUT</li>
                     </NavLink>
-                    <NavLink to='/contact' onClick={() => setShowMenu(false)}>
+                    <NavLink to='/contact' onClick={(e) => {
+                      e.preventDefault();
+                      navigateSafely('/contact');
+                      setShowMenu(false);
+                    }}>
                       <li className='flex items-center gap-2 hover:text-primary transition-colors'><IoMailOutline className='text-lg' /> CONTACT</li>
                     </NavLink>
-                    <NavLink to='/terms' onClick={() => setShowMenu(false)}>
+                    <NavLink to='/terms' onClick={(e) => {
+                      e.preventDefault();
+                      navigateSafely('/terms');
+                      setShowMenu(false);
+                    }}>
                       <li className='flex items-center gap-2 hover:text-primary transition-colors'><IoDocumentTextOutline className='text-lg' /> TERMS & CONDITIONS</li>
                     </NavLink>
                     <hr className='border-gray-200 my-4' />
                     {/* User specific links */}
-                    <NavLink to='/my-profile' onClick={() => setShowMenu(false)}>
+                    <NavLink to='/my-profile' onClick={(e) => {
+                      e.preventDefault();
+                      navigateSafely('/my-profile');
+                      setShowMenu(false);
+                    }}>
                       <li className='flex items-center gap-2 hover:text-primary transition-colors'><IoPersonOutline className='text-lg' /> MY PROFILE</li>
                     </NavLink>
-                    <NavLink to='/my-appointments' onClick={() => setShowMenu(false)}>
+                    <NavLink to='/my-appointments' onClick={(e) => {
+                      e.preventDefault();
+                      navigateSafely('/my-appointments');
+                      setShowMenu(false);
+                    }}>
                       <li className='flex items-center gap-2 hover:text-primary transition-colors'><IoCalendarOutline className='text-lg' /> MY APPOINTMENTS</li>
                     </NavLink>
                     <li onClick={() => {
@@ -279,19 +324,39 @@ const Navbar = () => {
               ) : (
                 <>
                   <ul className='flex flex-col gap-4 font-medium p-6'>
-                    <NavLink to='/' onClick={() => setShowMenu(false)}>
+                    <NavLink to='/' onClick={(e) => {
+                      e.preventDefault();
+                      navigateSafely('/');
+                      setShowMenu(false);
+                    }}>
                       <li className='flex items-center gap-2 hover:text-primary transition-colors'><IoHomeOutline className='text-lg' /> HOME</li>
                     </NavLink>
-                    <NavLink to='/doctors' onClick={() => setShowMenu(false)}>
+                    <NavLink to='/doctors' onClick={(e) => {
+                      e.preventDefault();
+                      navigateSafely('/doctors');
+                      setShowMenu(false);
+                    }}>
                       <li className='flex items-center gap-2 hover:text-primary transition-colors'><IoPersonOutline className='text-lg' /> ALL DOCTORS</li>
                     </NavLink>
-                    <NavLink to='/about' onClick={() => setShowMenu(false)}>
+                    <NavLink to='/about' onClick={(e) => {
+                      e.preventDefault();
+                      navigateSafely('/about');
+                      setShowMenu(false);
+                    }}>
                       <li className='flex items-center gap-2 hover:text-primary transition-colors'><IoInformationCircleOutline className='text-lg' /> ABOUT</li>
                     </NavLink>
-                    <NavLink to='/contact' onClick={() => setShowMenu(false)}>
+                    <NavLink to='/contact' onClick={(e) => {
+                      e.preventDefault();
+                      navigateSafely('/contact');
+                      setShowMenu(false);
+                    }}>
                       <li className='flex items-center gap-2 hover:text-primary transition-colors'><IoMailOutline className='text-lg' /> CONTACT</li>
                     </NavLink>
-                    <NavLink to='/terms' onClick={() => setShowMenu(false)}>
+                    <NavLink to='/terms' onClick={(e) => {
+                      e.preventDefault();
+                      navigateSafely('/terms');
+                      setShowMenu(false);
+                    }}>
                       <li className='flex items-center gap-2 hover:text-primary transition-colors'><IoDocumentTextOutline className='text-lg' /> TERMS & CONDITIONS</li>
                     </NavLink>
                   </ul>
@@ -299,14 +364,14 @@ const Navbar = () => {
                   {/* Login/Signup buttons for mobile */}
                   <div className='mt-8 flex flex-col gap-4 p-6'>
                     <button onClick={() => {
-                      navigate('/login');
+                      navigateSafely('/login');
                       setLoginState('Sign Up');
                       setShowMenu(false);
                     }} className='bg-primary text-white px-6 py-2.5 rounded-full font-light hover:bg-primary/90 transition-colors'>
                       Sign up
                     </button>
                     <button onClick={() => {
-                      navigate('/login');
+                      navigateSafely('/login');
                       setLoginState('Login');
                       setShowMenu(false);
                     }} className='border-2 border-primary text-primary px-6 py-2.5 rounded-full font-light hover:bg-primary/5 transition-colors'>

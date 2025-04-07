@@ -2,10 +2,12 @@ import React, { useContext, useEffect, useState } from 'react'
 import { assets } from '../../assets/assets'
 import { AdminContext } from '../../context/AdminContext'
 import { AppContext } from '../../context/AppContext'
+import { useNavigate } from 'react-router-dom'
 
 const Dashboard = () => {
   const { aToken, getDashData, cancelAppointment, dashData, appointments, getAllAppointments } = useContext(AdminContext)
   const { slotDateFormat } = useContext(AppContext)
+  const navigate = useNavigate()
 
   // State for dashboard components
   const [weekdayDistribution, setWeekdayDistribution] = useState([])
@@ -148,7 +150,10 @@ const Dashboard = () => {
         <>
           {/* Main Stats Cards */}
           <div className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6'>
-            <div className='bg-white p-4 sm:p-6 rounded-lg border-l-4 border-blue-500 shadow-sm hover:shadow-md transition-shadow'>
+            <div 
+              className='bg-white p-4 sm:p-6 rounded-lg border-l-4 border-blue-500 shadow-sm hover:shadow-md transition-shadow cursor-pointer'
+              onClick={() => navigate('/doctor-list')}
+            >
               <div className='flex items-center justify-between mb-4'>
                 <div>
                   <p className='text-sm text-gray-500 mb-1'>Total Doctors</p>
@@ -166,7 +171,10 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <div className='bg-white p-4 sm:p-6 rounded-lg border-l-4 border-green-500 shadow-sm hover:shadow-md transition-shadow'>
+            <div 
+              className='bg-white p-4 sm:p-6 rounded-lg border-l-4 border-green-500 shadow-sm hover:shadow-md transition-shadow cursor-pointer'
+              onClick={() => navigate('/users-list')}
+            >
               <div className='flex items-center justify-between mb-4'>
                 <div>
                   <p className='text-sm text-gray-500 mb-1'>Total Patients</p>
@@ -184,7 +192,10 @@ const Dashboard = () => {
               </div>
             </div>
 
-            <div className='bg-white p-4 sm:p-6 rounded-lg border-l-4 border-purple-500 shadow-sm hover:shadow-md transition-shadow'>
+            <div 
+              className='bg-white p-4 sm:p-6 rounded-lg border-l-4 border-purple-500 shadow-sm hover:shadow-md transition-shadow cursor-pointer'
+              onClick={() => navigate('/all-appointments')}
+            >
               <div className='flex items-center justify-between mb-4'>
                 <div>
                   <p className='text-sm text-gray-500 mb-1'>Total Appointments</p>
