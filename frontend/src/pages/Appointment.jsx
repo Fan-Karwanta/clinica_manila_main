@@ -23,6 +23,7 @@ const Appointment = () => {
     const [termsAccepted, setTermsAccepted] = useState(false)
     const [isFormDirty, setIsFormDirty] = useState(false)
     const [pendingNavigation, setPendingNavigation] = useState(null)
+    const [userBookedSlots, setUserBookedSlots] = useState({})
 
     const navigate = useNavigate()
     const location = useLocation()
@@ -88,6 +89,39 @@ const Appointment = () => {
         return date >= minDate && date <= maxDate
     }
 
+    // Fetch user's booked slots for the current month
+    const fetchUserBookedSlots = async () => {
+        if (!token) return;
+        
+        try {
+            // Get the first and last day of the current month
+            const firstDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+            const lastDay = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 0);
+            
+            // Format dates for API query
+            const formatDateForQuery = (date) => {
+                const day = date.getDate();
+                const month = date.getMonth() + 1;
+                const year = date.getFullYear();
+                return `${day}_${month}_${year}`;
+            };
+            
+            const startDate = formatDateForQuery(firstDay);
+            const endDate = formatDateForQuery(lastDay);
+            
+            const { data } = await axios.get(
+                `${backendUrl}/api/user/booked-slots?startDate=${startDate}&endDate=${endDate}`, 
+                { headers: { token } }
+            );
+            
+            if (data.success) {
+                setUserBookedSlots(data.bookedSlots);
+            }
+        } catch (error) {
+            console.error('Error fetching user booked slots:', error);
+        }
+    };
+
     const handleDateClick = (date) => {
         if (!date || !isDateSelectable(date)) return
         setSelectedDate(date)
@@ -100,19 +134,29 @@ const Appointment = () => {
         const endTime = new Date(date)
         endTime.setHours(21, 0, 0, 0)
 
+        // Format the selected date as slotDate string (day_month_year)
+        const day = date.getDate()
+        const month = date.getMonth() + 1
+        const year = date.getFullYear()
+        const slotDate = `${day}_${month}_${year}`
+        
+        // Get user's booked slots for this date
+        const userBookedTimesForDate = userBookedSlots[slotDate] || []
+
         while (currentDate < endTime) {
             const formattedTime = currentDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-            const day = currentDate.getDate()
-            const month = currentDate.getMonth() + 1
-            const year = currentDate.getFullYear()
-            const slotDate = `${day}_${month}_${year}`
             
-            const isSlotAvailable = !(docInfo.slots_booked[slotDate] && docInfo.slots_booked[slotDate].includes(formattedTime))
+            // Check if slot is available (not booked by the doctor and not already booked by the user)
+            const isSlotBookedByDoctor = docInfo.slots_booked[slotDate] && docInfo.slots_booked[slotDate].includes(formattedTime)
+            const isSlotBookedByUser = userBookedTimesForDate.includes(formattedTime)
+            
+            const isSlotAvailable = !isSlotBookedByDoctor && !isSlotBookedByUser
             
             timeSlots.push({
                 datetime: new Date(currentDate),
                 time: formattedTime,
-                available: isSlotAvailable
+                available: isSlotAvailable,
+                bookedByUser: isSlotBookedByUser
             })
             
             currentDate.setMinutes(currentDate.getMinutes() + 30)
@@ -171,6 +215,18 @@ const Appointment = () => {
             fetchDocInfo()
         }
     }, [doctors, docId])
+
+    // Fetch user's booked slots when the month changes
+    useEffect(() => {
+        fetchUserBookedSlots();
+    }, [currentMonth, token]);
+
+    // If selected date changes and we already have user booked slots, update the time slots
+    useEffect(() => {
+        if (selectedDate && Object.keys(userBookedSlots).length > 0) {
+            handleDateClick(selectedDate);
+        }
+    }, [userBookedSlots]);
 
     // Effect to intercept navigation attempts
     useEffect(() => {
@@ -307,6 +363,9 @@ const Appointment = () => {
                                     `}
                                 >
                                     {item.time.toLowerCase()}
+                                    {item.bookedByUser && (
+                                        <span className="block text-xs">Already booked</span>
+                                    )}
                                 </p>
                             ))}
                         </div>

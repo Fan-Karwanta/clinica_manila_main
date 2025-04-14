@@ -258,6 +258,21 @@ const bookAppointment = async (req, res) => {
             })
         }
 
+        // Check if user already has an appointment at the same time and date
+        const existingAppointment = await appointmentModel.findOne({
+            userId,
+            slotDate,
+            slotTime,
+            cancelled: false
+        });
+
+        if (existingAppointment) {
+            return res.json({
+                success: false,
+                message: 'You already have an appointment scheduled at this time'
+            });
+        }
+
         const docData = await doctorModel.findById(docId).select("-password")
 
         if (!docData.available) {
@@ -747,6 +762,53 @@ const createResetToken = async (req, res) => {
     }
 };
 
+// API to get user's booked time slots
+const getUserBookedSlots = async (req, res) => {
+    try {
+        const { userId } = req.body;
+        const { startDate, endDate } = req.query;
+        
+        // Find all non-cancelled appointments for this user
+        const query = {
+            userId,
+            cancelled: false
+        };
+        
+        // If date range is provided, filter by it
+        if (startDate && endDate) {
+            // We don't need to convert the dates since slotDate is stored as a string
+            // in the format "day_month_year"
+            query.slotDate = { $gte: startDate, $lte: endDate };
+        }
+        
+        const appointments = await appointmentModel.find(query)
+            .select('slotDate slotTime');
+        
+        // Format the response as a map of dates to arrays of times
+        const bookedSlots = {};
+        
+        appointments.forEach(appointment => {
+            const { slotDate, slotTime } = appointment;
+            if (!bookedSlots[slotDate]) {
+                bookedSlots[slotDate] = [];
+            }
+            bookedSlots[slotDate].push(slotTime);
+        });
+        
+        res.json({ 
+            success: true, 
+            bookedSlots 
+        });
+        
+    } catch (error) {
+        console.log(error);
+        res.json({ 
+            success: false, 
+            message: error.message 
+        });
+    }
+};
+
 export {
     registerUser,
     loginUser,
@@ -764,5 +826,6 @@ export {
     forgotPassword,
     verifyResetToken,
     resetPassword,
-    createResetToken
+    createResetToken,
+    getUserBookedSlots
 };
